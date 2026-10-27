@@ -4,7 +4,7 @@ import { createElement as h } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 
 import { Dashboard } from '../src/client/App.js'
-import { KpiCards, MetricChips } from '../src/client/components/Cards.js'
+import { KpiCards } from '../src/client/components/Cards.js'
 import { CostPanel } from '../src/client/components/Cost.js'
 import { ModelTable } from '../src/client/components/Models.js'
 import { PricingEditor } from '../src/client/components/PricingEditor.js'
@@ -13,7 +13,6 @@ import { SessionTable } from '../src/client/components/Sessions.js'
 import { Trends } from '../src/client/components/Trends.js'
 import { en } from '../src/client/locales.js'
 import type { LocaleLike, T } from '../src/client/lib.js'
-import { summarize } from '../src/shared/range.js'
 import type {
   ModelUsage,
   SessionSummary,
@@ -93,7 +92,6 @@ const payload: StatsPayload = {
   errors: [],
 }
 
-const range = summarize([bucket], 'day', '2026-01-05', '2026-01-05')
 const intl = 'en-US'
 
 const t: T = (key, params) => {
@@ -106,31 +104,30 @@ const t: T = (key, params) => {
   return text
 }
 
-test('KPI cards and chips render the range totals', () => {
-  const markup = renderToStaticMarkup(h(KpiCards, { range, lifetime: payload, t, intl }))
-    + renderToStaticMarkup(h(MetricChips, { range, lifetime: payload, t, intl }))
-  assert.match(markup, /Total Tokens/)
-  assert.match(markup, /Input Tokens/)
-  assert.match(markup, /Output Tokens/)
-  assert.match(markup, /Cache Tokens/)
-  assert.match(markup, /Sessions/)
-  assert.match(markup, /Cache hit rate/)
+test('KPI cards render the four lifetime numbers', () => {
+  const markup = renderToStaticMarkup(h(KpiCards, { data: payload, t, intl }))
+  assert.match(markup, /Total tokens/)
+  assert.match(markup, /Input tokens/)
+  assert.match(markup, /Output tokens/)
+  assert.match(markup, /Cache tokens/)
+  assert.match(markup, /4 requests/)
+  assert.match(markup, /hit rate/)
 })
 
-test('trends render all three charts with real buckets', () => {
-  const markup = renderToStaticMarkup(h(Trends, { result: range, t, intl }))
-  assert.match(markup, /Usage trend/)
-  assert.match(markup, /Daily Token consumption/)
-  assert.match(markup, /Input vs output/)
-  assert.match(markup, /Cache usage/)
-  assert.equal((markup.match(/<svg/g) ?? []).length, 3)
+test('the trend section renders one chart with three view choices', () => {
+  const markup = renderToStaticMarkup(h(Trends, { data: payload, t, intl }))
+  assert.match(markup, /Usage/)
+  assert.match(markup, /Tokens/)
+  assert.match(markup, /Input \/ Output/)
+  assert.match(markup, /Cache/)
+  assert.match(markup, /4K tokens/)
+  assert.equal((markup.match(/<svg/g) ?? []).length, 1)
 })
 
 test('the model table shows the logged route, share, and totals', () => {
   const markup = renderToStaticMarkup(h(ModelTable, {
     models: [model],
-    total: range.totalTokens,
-    rangeLabel: 'All time',
+    total: 4_000,
     t,
     intl,
   }))
@@ -148,9 +145,7 @@ test('the session table is searchable markup with badges and lifetime totals', (
     onSelect: () => {},
   }))
   assert.match(markup, /Fix the parser/)
-  assert.match(markup, /session-1234/)
   assert.match(markup, /Live/)
-  assert.match(markup, /Lifetime totals/)
   assert.match(markup, /4,000/)
 })
 
@@ -158,22 +153,20 @@ test('empty tables and cost estimates render their explicit empty states', () =>
   const models = renderToStaticMarkup(h(ModelTable, {
     models: [],
     total: 0,
-    rangeLabel: 'All time',
     t,
     intl,
   }))
-  assert.match(models, /No model usage in this range\./)
+  assert.match(models, /No model usage yet\./)
 
   const cost = renderToStaticMarkup(h(CostPanel, {
     models: [model],
     pricing: {},
-    rangeLabel: 'All time',
     t,
     intl,
     onConfigure: () => {},
   }))
-  assert.match(cost, /No prices configured/)
-  assert.match(cost, /Not configured/)
+  assert.match(cost, /No prices set/)
+  assert.match(cost, /Set prices/)
 })
 
 test('a configured price renders an estimated amount', () => {
@@ -182,14 +175,13 @@ test('a configured price renders an estimated amount', () => {
     pricing: {
       [model.key]: { currency: 'USD', input: 1, output: 2, cacheRead: 0.5, cacheWrite: 0.25 },
     },
-    rangeLabel: 'All time',
     t,
     intl,
     onConfigure: () => {},
   }))
-  assert.match(markup, /Estimated/)
+  assert.match(markup, /Estimated cost/)
   assert.match(markup, /0\.003300/)
-  assert.doesNotMatch(markup, /No prices configured/)
+  assert.doesNotMatch(markup, /No prices set/)
 })
 
 test('the session detail modal renders metadata, totals, and model rows', () => {
@@ -201,10 +193,10 @@ test('the session detail modal renders metadata, totals, and model rows', () => 
     onOpen: () => {},
   }))
   assert.match(markup, /Fix the parser/)
-  assert.match(markup, /Session ID/)
-  assert.match(markup, /Models in this session/)
+  assert.match(markup, /Total tokens/)
+  assert.match(markup, /Models/)
   assert.match(markup, /deepseek-v4\.1-flash/)
-  assert.match(markup, /Open conversation/)
+  assert.match(markup, /Open session/)
 })
 
 test('the pricing editor renders one editable row per model', () => {
@@ -213,14 +205,12 @@ test('the pricing editor renders one editable row per model', () => {
     models: [model],
     pricing: {},
     t,
-    intl,
     onClose: () => {},
     onSave: () => {},
   }))
-  assert.match(markup, /Configure prices/)
-  assert.match(markup, /per 1M tokens/)
+  assert.match(markup, /Manage prices/)
+  assert.match(markup, /Rates per 1M tokens/)
   assert.match(markup, /deepseek-v4\.1-flash/)
-  assert.match(markup, /localStorage/)
 })
 
 test('the dashboard shell renders its loading state without a Host', () => {

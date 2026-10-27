@@ -93,6 +93,8 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   globals.window = dom.window
   globals.document = dom.window.document
   globals.localStorage = dom.window.localStorage
+  globals.HTMLElement = dom.window.HTMLElement
+  globals.Node = dom.window.Node
   globals.IS_REACT_ACT_ENVIRONMENT = true
 
   const calls: string[] = []
@@ -112,8 +114,9 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   dom.window.document.body.append(container)
   const root = createRoot(container)
 
+  try {
   await act(async () => {
-    root.render(h(Dashboard, { locale }))
+    root.render(h(Dashboard, { locale, onOpenSession: () => {} }))
   })
   await act(async () => {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -121,23 +124,88 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
 
   assert.equal(calls.length > 0, true)
   assert.match(calls[0] ?? '', /dsh-token-dashboard\/stats/)
-  assert.match(container.textContent ?? '', /Total Tokens/)
+  assert.match(container.textContent ?? '', /Total tokens/)
   assert.match(container.textContent ?? '', /deepseek-v4\.1-flash/)
   assert.match(container.textContent ?? '', /Fix the parser/)
   assert.match(container.textContent ?? '', /Estimated cost/)
-  assert.match(container.textContent ?? '', /Lifetime total/)
+  assert.match(container.textContent ?? '', /No prices set/)
+  assert.equal(container.querySelectorAll('.tdb-surface').length, 1)
+  assert.equal(container.querySelectorAll('.tdb-kpi').length, 4)
+  assert.equal(container.querySelectorAll('.tdb-section-title').length, 3)
+  assert.equal(container.textContent?.includes('Lifetime'), false)
+  assert.equal(container.textContent?.includes('Read-only'), false)
 
-  const buttons = Array.from(container.querySelectorAll('button'))
-  const refresh = buttons.find(button => (button.textContent ?? '').includes('Refresh'))
+  const days7 = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-range-btn'))
+    .find(button => button.textContent === '7 days')
+  assert.ok(days7, 'range control is present')
+  await act(async () => {
+    days7.click()
+  })
+  assert.equal(days7.getAttribute('aria-pressed'), 'true')
+
+  const ioView = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-view-btn'))
+    .find(button => button.textContent === 'Input / Output')
+  assert.ok(ioView, 'chart view control is present')
+  await act(async () => {
+    ioView.click()
+  })
+  assert.equal(ioView.getAttribute('aria-pressed'), 'true')
+
+  const totalSort = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-sort-btn'))
+    .find(button => button.textContent?.includes('Total'))
+  assert.ok(totalSort, 'total sort button is present')
+  const totalColumn = totalSort.closest('th')
+  assert.ok(totalColumn, 'total sort header is present')
+  await act(async () => {
+    totalSort.click()
+  })
+  assert.equal(totalColumn.getAttribute('aria-sort'), 'descending')
+  await act(async () => {
+    totalSort.click()
+  })
+  assert.equal(totalColumn.getAttribute('aria-sort'), 'ascending')
+
+  const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Refresh"]')
   assert.ok(refresh, 'refresh button is present')
   await act(async () => {
     refresh.click()
   })
   assert.equal(calls.some(url => url.includes('refresh=1')), true)
 
+  const row = container.querySelector<HTMLElement>('.tdb-row')
+  assert.ok(row, 'session row is present')
   await act(async () => {
-    root.unmount()
+    row.click()
   })
-  container.remove()
-  dom.window.close()
+  assert.match(container.querySelector('.tdb-drawer')?.textContent ?? '', /Open session/)
+
+  const closeDrawer = container.querySelector<HTMLButtonElement>('.tdb-drawer button[aria-label="Close"]')
+  assert.ok(closeDrawer, 'drawer close button is present')
+  await act(async () => {
+    closeDrawer.click()
+  })
+  assert.equal(container.querySelector('.tdb-drawer'), null)
+
+  const setPrices = Array.from(container.querySelectorAll('button'))
+    .find(button => button.textContent === 'Set prices')
+  assert.ok(setPrices, 'set prices button is present')
+  await act(async () => {
+    setPrices.click()
+  })
+  assert.match(container.querySelector('.tdb-modal')?.textContent ?? '', /Manage prices/)
+
+  const closePrices = container.querySelector<HTMLButtonElement>('.tdb-modal button[aria-label="Close"]')
+  assert.ok(closePrices, 'pricing close button is present')
+  await act(async () => {
+    closePrices.click()
+  })
+  assert.equal(container.querySelector('.tdb-modal'), null)
+
+  } finally {
+    await act(async () => {
+      root.unmount()
+    })
+    container.remove()
+    dom.window.close()
+  }
 })
