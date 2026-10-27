@@ -28,7 +28,7 @@ DeepSeek Harness（DSH）的全局 Token 用量看板。它是一个真正的 Co
 DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、跨会话、包含子代理会话的全局视图。`dsh-token-dashboard` 补充的正是这一层：
 
 - **Host 端**通过官方 `ctx.sessionPersistence` 读取本机保存的全部会话，用 `ctx.sessions` 读取活跃会话，并以 `session/event` 增量更新；
-- **Client 端**通过官方 Slot 机制在侧边栏注册图标、在 `main` 区域注册统计面板，使用 DSH 主题 Token 渲染，跟随深色/浅色主题；
+- **Client 端**通过官方 Slot 机制在侧边栏底部（个人信息上方）注册入口、在 `main` 区域注册统计面板，使用 DSH 主题 Token 渲染，跟随深色/浅色主题；
 - 数据只在同源 HTTP 路由上以 JSON 提供，复用 Host 的 Connection 鉴权；插件不写会话日志、不改模型请求、不上传任何数据。
 
 统计口径直接对齐 `@deepseek-ai/dsh-token-meter` 的 `tokenUsage` 投影：四个互斥的 provider 账单桶相加，流式样本被最终样本替换，重试开启新的计费 attempt，分叉继承的历史不重复计入。
@@ -92,7 +92,7 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 
 ### 界面
 
-- 侧边栏图标 + `main` 独立面板，不改动既有页面
+- 侧边栏左下角入口（Settings/个人信息上方）+ `main` 独立面板，不改动既有页面
 - 单一内容面板：四列 KPI + Usage + Models + Sessions + 折叠费用行，减少卡片与说明文字
 - 使用 `--dsw-alias-*` 主题 Token，自动适配深色 / 浅色
 - 响应式布局：4/2/1 列 KPI、表格窄屏隐藏次要列、详情在窄屏占满宽度
@@ -142,9 +142,9 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 ### 4. 打开
 
-在左侧边栏点击 **Token Dashboard** 图标（带柱状图与圆点的图标），或在面板导航中选择同名面板。
+在左侧边栏的**左下角**、Settings / 个人信息上方点击 **Token Dashboard** 入口。
 
-> 图标位于 DSH 内置 Plugins 与已安装的插件市场之后、Scheduled tasks 之前（`order: 6`）。
+> 入口注册在 `sidebar.footer.action`（`order: -1`），位于 Settings / 个人信息区上方，与内置 Cordis 状态行同处 footer 区；侧边栏收起为 56px rail 时显示为窄图标。
 
 ## 使用
 
@@ -226,7 +226,7 @@ src/
   shared/           # Host/Client 共用的纯函数与 wire 类型
   client/
     index.ts        # 浏览器 bundle 入口
-    plugin.ts       # Slot 注册（main + sidebar.panellist）
+    plugin.ts       # Slot 注册（main + sidebar.footer.action）
     App.tsx         # 页面编排：数据、布局、弹窗开关
     DashboardHeader.tsx
     usePricing.ts   # 浏览器本地单价状态
@@ -408,7 +408,7 @@ pnpm test
 - HTTP：ETag/304、`refresh=1`、Host 鉴权短路、404/405、verify 匹配与不匹配
 - 范围筛选、模型合并、费用、CSV 注入防护、JSON 脱敏
 - 组件 SSR 渲染 + jsdom 中完整挂载、fetch、渲染、手动刷新
-- 编译后的 Client bundle 实际加载、factory 返回、Slot 注册与图标/main 面板渲染
+- 编译后的 Client bundle 实际加载、factory 返回、footer 入口与 main 面板渲染
 
 ### 真实历史会话校验
 
@@ -438,9 +438,11 @@ aggregator:
 
 - `plugin_manager install_bundle`：`application: applied`
 - 移除 bundle：路由变为 404；重新安装：`application: applied`
-- 客户端 Slot 检查：
-  - `sidebar.panellist` 存在 `dsh-token-dashboard`（order 6，active）
-  - `main` 存在 key `dsh-token-dashboard`（active）
+- 客户端 Slot 注册（编译后 bundle 测试通过）：
+  - `sidebar.footer.action` 注册 `dsh-token-dashboard`（order -1，位于 Settings 区上方）
+  - `main` 注册 key `dsh-token-dashboard`
+  - 旧版本的 `sidebar.panellist` 入口已移除，避免顶部和底部出现两个入口
+- 页面刷新后可在 live Slot 检查中确认 footer 入口；刷新前当前进程里的页面仍持有旧 bundle。
 - `/dsh-token-dashboard/health` 在未登录的 loopback `curl` 下返回 **401**，说明路由已挂载且 Host Connection 鉴权生效（浏览器内登录后才会返回数据）。
 
 ### 尚未完成的验证

@@ -1,14 +1,13 @@
-/** Browser entry: register the sidebar row and its main panel. */
+/** Browser entry: a sidebar-footer entry and its main panel. */
 
-import { createElement as h } from 'react'
+import { createElement as h, Fragment } from 'react'
 
 import { Dashboard } from './App.js'
-import { PanelIcon } from './icons.js'
+import { ChartIcon } from './icons.js'
 import { en, zh } from './locales.js'
+import { FOOTER_CSS } from './styles.js'
 import { NS, PANEL_ID } from './lib.js'
 import type { ClientContextLike, UiWorkspaceLike } from './lib.js'
-
-const SIDEBAR_ORDER = 6
 
 export interface ClientPlugin {
   inject: string[]
@@ -18,7 +17,7 @@ export interface ClientPlugin {
 /** Build the Cordis client plugin object the module loader activates. */
 export default function createPlugin(): ClientPlugin {
   return {
-    inject: ['slots', 'locale'],
+    inject: ['slots', 'locale', 'layout'],
     apply(ctx: ClientContextLike): void {
       let uiWorkspace: UiWorkspaceLike | undefined
       try {
@@ -35,6 +34,7 @@ export default function createPlugin(): ClientPlugin {
       }, 'dsh-token-dashboard: dictionaries')
 
       const raw = ctx.locale.bind(NS)
+      const title = (): string => raw('panel.title')
       const openSession = (id: string): void => {
         try {
           uiWorkspace?.openSession?.(id)
@@ -51,6 +51,7 @@ export default function createPlugin(): ClientPlugin {
         }
       }
 
+      // The main panel is selected by the footer entry, not by a global panel row.
       ctx.slots.inject('main', () => ctx.slots.register({
         name: 'main',
         key: PANEL_ID,
@@ -61,16 +62,35 @@ export default function createPlugin(): ClientPlugin {
         ...(canOpen ? { onOpenSession: openSession } : {}),
       })))
 
-      ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
-        name: 'sidebar.panellist',
+      const footerEntry = (owner: { wide?: boolean } = {}): unknown => {
+        const wide = owner.wide !== false
+        return h(Fragment, {},
+          h('style', { key: 'tdb-footer-style' }, FOOTER_CSS),
+          h('button', {
+            key: 'tdb-footer-button',
+            type: 'button',
+            className: `tdb-footer-action${wide ? '' : ' tdb-footer-action--rail'}`,
+            'aria-label': title(),
+            title: title(),
+            onClick: () => {
+              try {
+                ctx.layout.selectPanel(PANEL_ID)
+              } catch {
+                // The main slot may not be mounted yet; a later click works.
+              }
+            },
+          },
+          h(ChartIcon, { size: wide ? 16 : 18 }),
+          wide ? h('span', { className: 'tdb-footer-action-label' }, title()) : null))
+      }
+
+      ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
+        name: 'sidebar.footer.action',
         id: PANEL_ID,
-        order: SIDEBAR_ORDER,
-        label: () => raw('panel.title'),
+        order: -1,
+        label: title,
         locale: NS,
-      }, (owner: { size?: number; active?: boolean } = {}) => h(PanelIcon, {
-        size: owner.size ?? 18,
-        active: owner.active === true,
-      })))
+      }, footerEntry as (props: Record<string, unknown>) => unknown))
     },
   }
 }

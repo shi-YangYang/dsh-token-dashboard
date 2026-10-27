@@ -611,3 +611,60 @@ export const CSS = `
   .tdb-table th, .tdb-table td { padding-left: 6px; padding-right: 6px; }
 }
 `
+
+/**
+ * Sidebar-footer entry styles. This seat lives outside `.tdb-root`, so it uses
+ * the host's tokens directly. The `:has` rule lets the footer's full-width
+ * Cordis action and this entry stack instead of competing for one row.
+ */
+export const FOOTER_CSS = `
+div:has(> .tdb-footer-action) {
+  flex-wrap: wrap;
+}
+.tdb-footer-action {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 42px;
+  flex: none;
+  margin: 8px 0 0;
+  padding: 0 10px 0 8px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--dsw-alias-label-primary, #1f2328);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+}
+.tdb-footer-action:hover {
+  background: var(--dsw-alias-interactive-bg-hover, var(--dsw-alias-bg-layer-2, #f5f6f8));
+}
+.tdb-footer-action:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--dsw-alias-brand-primary, #4f6ef7) 55%, transparent);
+  outline-offset: 1px;
+}
+.tdb-footer-action--rail {
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+  border-radius: 50%;
+}
+.tdb-footer-action-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tdb-footer-action { transition: none; }
+}
+`

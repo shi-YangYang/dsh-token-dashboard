@@ -47,10 +47,10 @@ test('the built client bundle registers the dashboard plugin factory', async () 
   assert.equal(definition.id, 'dsh-token-dashboard')
   const plugin = definition.factory(require) as { inject?: string[], apply?: unknown }
   assert.equal(typeof plugin.apply, 'function')
-  assert.deepEqual(plugin.inject, ['slots', 'locale'])
+  assert.deepEqual(plugin.inject, ['slots', 'locale', 'layout'])
 })
 
-test('the bundle plugin registers the sidebar row and the main panel', async () => {
+test('the bundle plugin registers the footer entry and the main panel', async () => {
   const require = createRequire(import.meta.url)
   const definition = await loadBundle('apply')
   const plugin = definition.factory(require) as {
@@ -91,12 +91,13 @@ test('the bundle plugin registers the sidebar row and the main panel', async () 
       callback({ uiWorkspace: { openSession: () => {} } })
     },
     get: () => undefined,
+    layout: { selectPanel: () => {} },
   }
 
   plugin.apply(ctx)
 
   assert.equal(registeredNamespace, 'dsh-token-dashboard')
-  assert.deepEqual(injections.sort(), ['main', 'sidebar.panellist'])
+  assert.deepEqual(injections.sort(), ['main', 'sidebar.footer.action'])
   assert.equal(registrations.length, 2)
 
   const main = registrations.find(item => item.options.name === 'main')
@@ -106,11 +107,14 @@ test('the bundle plugin registers the sidebar row and the main panel', async () 
   assert.match(renderToStaticMarkup(element), /tdb-root/)
   assert.equal(typeof (element.props as { onOpenSession?: unknown }).onOpenSession, 'function')
 
-  const sidebar = registrations.find(item => item.options.name === 'sidebar.panellist')
-  assert.ok(sidebar)
-  assert.equal(sidebar.options.id, 'dsh-token-dashboard')
-  assert.equal(sidebar.options.order, 6)
-  assert.match(renderToStaticMarkup(sidebar.component({ size: 16, active: true })), /<svg/)
+  const footer = registrations.find(item => item.options.name === 'sidebar.footer.action')
+  assert.ok(footer)
+  assert.equal(footer.options.id, 'dsh-token-dashboard')
+  assert.equal(footer.options.order, -1)
+  const footerMarkup = renderToStaticMarkup(footer.component({ wide: true }))
+  assert.match(footerMarkup, /tdb-footer-action/)
+  assert.match(footerMarkup, /Token Dashboard/)
+  assert.match(footerMarkup, /<svg/)
 
   assert.equal(localeDisposed, false)
 })

@@ -60,12 +60,17 @@ export interface ClientContextLike {
   effect(callback: () => void | (() => void), label?: string): unknown
   slots: SlotsLike
   locale: LocaleLike
+  layout: LayoutLike
   inject?(services: readonly string[], callback: (ctx: ClientContextLike & { uiWorkspace?: UiWorkspaceLike }) => void): unknown
   get?(name: string): unknown
 }
 
 export interface UiWorkspaceLike {
   openSession?(target: string): void
+}
+
+export interface LayoutLike {
+  selectPanel(panelId: string | null): void
 }
 
 /** Pick an `Intl` locale from the host's active locale id. */
