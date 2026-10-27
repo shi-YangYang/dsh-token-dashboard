@@ -111,7 +111,7 @@ export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): R
         const first = row.models[0]
         return first === undefined
           ? '—'
-          : h('span', {},
+          : h('span', { className: 'tdb-session-model' },
             first.model === '' ? t('models.unknown') : first.model,
             row.models.length > 1
               ? h('span', { className: 'tdb-model-provider' },

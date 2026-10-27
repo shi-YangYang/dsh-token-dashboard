@@ -51,8 +51,8 @@ export function CostPanel({ models, pricing, t, intl, onConfigure }: CostProps):
     {
       key: 'tokens',
       header: t('models.total'),
-      headerClassName: 'tdb-num',
-      cellClassName: 'tdb-num',
+      headerClassName: 'tdb-num tdb-hide-sm',
+      cellClassName: 'tdb-num tdb-hide-sm',
       render: row => formatNumber(totalTokens(row.tokens), intl),
     },
     {

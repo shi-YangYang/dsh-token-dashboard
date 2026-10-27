@@ -15,6 +15,7 @@ const HEIGHT = 252
 const TOP = 16
 const BOTTOM = 28
 const LEFT = 44
+const RIGHT = 20
 
 type SeriesKey = 'uncachedInputTokens' | 'cacheReadTokens' | 'cacheWriteTokens' | 'outputTokens'
 
@@ -46,9 +47,9 @@ interface Hover {
 /** Stacked daily/hourly consumption. */
 export function StackedBars({ buckets, granularity, t, intl }: ChartProps): ReactElement {
   const [ref, measured] = useElementWidth<HTMLDivElement>()
-  const width = Math.max(320, Math.round(measured || 720))
+  const width = Math.max(1, Math.round(measured || 720))
   const [hover, setHover] = useState<Hover | null>(null)
-  const innerWidth = Math.max(80, width - LEFT - 14)
+  const innerWidth = Math.max(20, width - LEFT - RIGHT)
   const innerHeight = HEIGHT - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
   const barWidth = clamp(band * 0.64, 1.5, 34)
@@ -90,8 +91,8 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
       onMouseMove: onMove,
       onMouseLeave: () => setHover(null),
     },
-    ...grid(width, maximum, toY, innerHeight, intl),
-    h('line', { x1: LEFT, y1: bottom, x2: width - 14, y2: bottom, className: 'tdb-axis-line' }),
+    ...grid(width, maximum, toY, intl),
+    h('line', { x1: LEFT, y1: bottom, x2: width - RIGHT, y2: bottom, className: 'tdb-axis-line' }),
     ...buckets.map((bucket, index) => {
       let cursor = 0
       const active = hover?.index === index
@@ -114,7 +115,7 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
     }),
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null ? null : h(Tooltip, {
-      x: clamp(hover.x, 96, width - 96),
+      x: clamp(hover.x, 110, width - 110),
       title: hovered === undefined ? '' : `${labelOf(hovered)} · ${formatCompact(totalOf(hovered), intl)}`,
       rows: hovered === undefined ? [] : [
         { label: t('legend.input'), value: formatCompact(hovered.uncachedInputTokens, intl), color: 'var(--tdb-cat-input)' },
@@ -130,9 +131,9 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
 /** Two bars per bucket: uncached input and output. */
 export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): ReactElement {
   const [ref, measured] = useElementWidth<HTMLDivElement>()
-  const width = Math.max(300, Math.round(measured || 520))
+  const width = Math.max(1, Math.round(measured || 520))
   const [hover, setHover] = useState<Hover | null>(null)
-  const innerWidth = Math.max(60, width - LEFT - 12)
+  const innerWidth = Math.max(20, width - LEFT - RIGHT)
   const innerHeight = HEIGHT - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
   const barWidth = clamp(band * 0.28, 1.5, 12)
@@ -165,8 +166,8 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
       onMouseMove: onMove,
       onMouseLeave: () => setHover(null),
     },
-    ...grid(width, maximum, toY, innerHeight, intl),
-    h('line', { x1: LEFT, y1: bottom, x2: width - 12, y2: bottom, className: 'tdb-axis-line' }),
+    ...grid(width, maximum, toY, intl),
+    h('line', { x1: LEFT, y1: bottom, x2: width - RIGHT, y2: bottom, className: 'tdb-axis-line' }),
     ...buckets.map((bucket, index) => {
       const center = LEFT + band * index + band / 2
       const inputHeight = Math.max(0, toY(0) - toY(bucket.uncachedInputTokens))
@@ -192,7 +193,7 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
     }),
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null || hovered === undefined ? null : h(Tooltip, {
-      x: clamp(hover.x, 96, width - 96),
+      x: clamp(hover.x, 110, width - 110),
       title: labelOf(hovered),
       rows: [
         { label: t('legend.input'), value: formatCompact(hovered.uncachedInputTokens, intl), color: 'var(--tdb-cat-input)' },
@@ -205,10 +206,10 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
 /** Cache read/write bars plus the per-bucket hit rate line. */
 export function CacheChart({ buckets, granularity, t, intl }: ChartProps): ReactElement {
   const [ref, measured] = useElementWidth<HTMLDivElement>()
-  const width = Math.max(300, Math.round(measured || 520))
+  const width = Math.max(1, Math.round(measured || 520))
   const [hover, setHover] = useState<Hover | null>(null)
   const right = 42
-  const innerWidth = Math.max(60, width - LEFT - right)
+  const innerWidth = Math.max(20, width - LEFT - right)
   const innerHeight = HEIGHT - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
   const barWidth = clamp(band * 0.54, 1.5, 24)
@@ -253,7 +254,7 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
       onMouseMove: onMove,
       onMouseLeave: () => setHover(null),
     },
-    ...grid(width, maximum, toY, innerHeight, intl),
+    ...grid(width, maximum, toY, intl, right),
     h('text', { x: width - right + 6, y: TOP + 3, className: 'tdb-axis-text' }, '100%'),
     h('text', { x: width - right + 6, y: TOP + innerHeight / 2, className: 'tdb-axis-text' }, '50%'),
     h('text', { x: width - right + 6, y: bottom }, '0%'),
@@ -296,7 +297,7 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
     }),
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null || hovered === undefined ? null : h(Tooltip, {
-      x: clamp(hover.x, 96, width - 96),
+      x: clamp(hover.x, 110, width - 110),
       title: labelOf(hovered),
       rows: [
         { label: t('legend.cacheRead'), value: formatCompact(hovered.cacheReadTokens, intl), color: 'var(--tdb-cat-cache-read)' },
@@ -329,8 +330,8 @@ function grid(
   width: number,
   maximum: number,
   toY: (value: number) => number,
-  innerHeight: number,
   intl: string | undefined,
+  right: number = RIGHT,
 ): ReactElement[] {
   const lines: ReactElement[] = []
   for (let step = 0; step <= 4; step += 1) {
@@ -340,7 +341,7 @@ function grid(
       key: `grid-${step}`,
       x1: LEFT,
       y1: y,
-      x2: width - 14,
+      x2: width - right,
       y2: y,
       className: 'tdb-grid-line',
     }))
@@ -352,7 +353,6 @@ function grid(
       className: 'tdb-axis-text',
     }, formatCompact(value, intl)))
   }
-  void innerHeight
   return lines
 }
 
