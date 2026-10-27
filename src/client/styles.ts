@@ -37,7 +37,7 @@ export const CSS = `
   display: flex;
   flex-direction: column;
   color: var(--tdb-ink);
-  background: var(--dsw-alias-bg-base, #ffffff);
+  background: var(--dsw-alias-bg-layer-1, #ffffff);
   font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -633,7 +633,7 @@ div:has(> .tdb-footer-action) {
   padding: 0 10px 0 8px;
   border: none;
   border-radius: 12px;
-  background: transparent;
+  background: var(--dsw-alias-bg-layer-1, #ffffff);
   color: var(--dsw-alias-label-primary, #1f2328);
   font: inherit;
   font-size: 14px;
