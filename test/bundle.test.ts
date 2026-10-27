@@ -113,7 +113,7 @@ test('the bundle plugin registers the footer entry and the main panel', async ()
   assert.equal(footer.options.order, -1)
   const footerMarkup = renderToStaticMarkup(footer.component({ wide: true }))
   assert.match(footerMarkup, /tdb-footer-action/)
-  assert.match(footerMarkup, /Token Dashboard/)
+  assert.match(footerMarkup, /Token usage/)
   assert.match(footerMarkup, /<svg/)
 
   assert.equal(localeDisposed, false)

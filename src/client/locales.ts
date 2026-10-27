@@ -3,7 +3,7 @@
 export type LocaleDict = Record<string, string>
 
 export const en: LocaleDict = {
-  'panel.title': 'Token Dashboard',
+  'panel.title': 'Token usage',
 
   'actions.refresh': 'Refresh',
   'actions.export': 'Export',
@@ -118,7 +118,7 @@ export const en: LocaleDict = {
 }
 
 export const zh: LocaleDict = {
-  'panel.title': 'Token Dashboard',
+  'panel.title': 'Token 用量',
 
   'actions.refresh': '刷新',
   'actions.export': '导出',

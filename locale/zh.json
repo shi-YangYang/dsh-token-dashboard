@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Token Dashboard",
+    "title": "Token 用量",
     "description": "本机全部会话的 Token 用量看板：总量、每日趋势、模型分布、会话排行，以及可选费用估算。"
   }
 }

@@ -1,6 +1,8 @@
 # dsh-token-dashboard
 
-DeepSeek Harness（DSH）的全局 Token 用量看板。它是一个真正的 Cordis 插件：Host 端只读聚合本机所有会话日志，Web 端在 DSH 原生界面中注册一个 **Token Dashboard** 入口和独立面板，不修改 DSH 源码、`node_modules`，也不是一个外挂的独立 Web 应用。
+> 界面显示名：**Token 用量**（英文界面为 **Token usage**）。包名、Slot id、API 路径仍为 `dsh-token-dashboard`，以保持安装与数据兼容。
+
+DeepSeek Harness（DSH）的全局 Token 用量看板。它是一个真正的 Cordis 插件：Host 端只读聚合本机所有会话日志，Web 端在 DSH 原生界面中注册一个 **Token 用量** 入口和独立面板，不修改 DSH 源码、`node_modules`，也不是一个外挂的独立 Web 应用。
 
 > 已在本机 DSH Desktop `0.2.1-rc.3`（Cordis `4.0.5`，profile `desktop`）中安装、加载并用真实历史会话验证。
 
@@ -142,7 +144,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 ### 4. 打开
 
-在左侧边栏的**左下角**、Settings / 个人信息上方点击 **Token Dashboard** 入口。
+在左侧边栏的**左下角**、Settings / 个人信息上方点击 **Token 用量** 入口。
 
 > 入口注册在 `sidebar.footer.action`（`order: -1`），位于 Settings / 个人信息区上方，与内置 Cordis 状态行同处 footer 区；侧边栏收起为 56px rail 时显示为窄图标。
 
