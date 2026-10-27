@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { createElement as h } from 'react'
 import { createRequire } from 'node:module'
 import type { ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -111,7 +112,8 @@ test('the bundle plugin registers the footer entry and the main panel', async ()
   assert.ok(footer)
   assert.equal(footer.options.id, 'dsh-token-dashboard')
   assert.equal(footer.options.order, -1)
-  const footerMarkup = renderToStaticMarkup(footer.component({ wide: true }))
+  const footerComponent = footer.component as unknown as (props: { wide?: boolean }) => ReactElement
+  const footerMarkup = renderToStaticMarkup(h(footerComponent, { wide: true }))
   assert.match(footerMarkup, /tdb-footer-action/)
   assert.match(footerMarkup, /Token usage/)
   assert.match(footerMarkup, /<svg/)

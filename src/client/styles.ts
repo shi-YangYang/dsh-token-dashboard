@@ -80,6 +80,10 @@ export const CSS = `
   letter-spacing: -0.02em;
 }
 .tdb-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.tdb-lang-switch { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 8px; background: var(--tdb-surface-2); }
+.tdb-lang-choice { height: 24px; padding: 0 7px; border: 0; border-radius: 6px; background: none; color: var(--tdb-ink-2); font: inherit; font-size: 11px; line-height: 1; cursor: pointer; }
+.tdb-lang-choice:hover { color: var(--tdb-ink); }
+.tdb-lang-choice[aria-pressed="true"] { background: var(--tdb-surface); color: var(--tdb-ink); font-weight: 600; box-shadow: 0 1px 2px color-mix(in srgb, #000000 12%, transparent); }
 
 .tdb-btn {
   display: inline-flex;
@@ -633,7 +637,7 @@ div:has(> .tdb-footer-action) {
   padding: 0 10px 0 8px;
   border: none;
   border-radius: 12px;
-  background: var(--dsw-alias-bg-layer-1, #ffffff);
+  background: transparent;
   color: var(--dsw-alias-label-primary, #1f2328);
   font: inherit;
   font-size: 14px;

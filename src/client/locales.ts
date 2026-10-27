@@ -6,6 +6,7 @@ export const en: LocaleDict = {
   'panel.title': 'Token usage',
 
   'actions.refresh': 'Refresh',
+  'language.switch': 'Switch language',
   'actions.export': 'Export',
   'export.summary': 'Summary CSV',
   'export.sessions': 'Sessions CSV',
@@ -121,6 +122,7 @@ export const zh: LocaleDict = {
   'panel.title': 'Token 用量',
 
   'actions.refresh': '刷新',
+  'language.switch': '切换语言',
   'actions.export': '导出',
   'export.summary': '汇总 CSV',
   'export.sessions': '会话 CSV',

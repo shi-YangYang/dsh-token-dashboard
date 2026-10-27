@@ -25,10 +25,10 @@ export function SessionDetail({ session, t, intl, onClose, onOpen }: SessionDeta
 
   const title = session.title ?? t('sessions.untitled')
   const badges = [
-    session.live ? h(Tag, { tone: 'live' }, t('sessions.live')) : null,
-    session.origin === 'subagent' ? h(Tag, { tone: 'sub' }, t('sessions.subagent')) : null,
-    session.seeded ? h(Tag, {}, t('sessions.fork')) : null,
-    session.stale ? h(Tag, { tone: 'stale' }, t('sessions.stale')) : null,
+    session.live ? h(Tag, { key: 'live', tone: 'live' }, t('sessions.live')) : null,
+    session.origin === 'subagent' ? h(Tag, { key: 'sub', tone: 'sub' }, t('sessions.subagent')) : null,
+    session.seeded ? h(Tag, { key: 'fork' }, t('sessions.fork')) : null,
+    session.stale ? h(Tag, { key: 'stale', tone: 'stale' }, t('sessions.stale')) : null,
   ]
 
   const models = session.models.length === 0
@@ -60,18 +60,18 @@ export function SessionDetail({ session, t, intl, onClose, onOpen }: SessionDeta
     onClose,
     footer,
   },
-  h('div', { className: 'tdb-detail-stats' },
+  h('div', { key: 'stats', className: 'tdb-detail-stats' },
     h(Stat, { label: t('detail.total'), value: formatNumber(totalTokens(session.totals), intl), total: true }),
     h(Stat, { label: t('detail.input'), value: formatNumber(session.totals.uncachedInputTokens, intl) }),
     h(Stat, { label: t('detail.output'), value: formatNumber(session.totals.outputTokens, intl) }),
     h(Stat, { label: t('detail.cache'), value: formatNumber(cacheTokens(session.totals), intl) }),
     h(Stat, { label: t('detail.requests'), value: formatNumber(session.requests, intl) })),
-  h('div', { className: 'tdb-fields' },
+  h('div', { key: 'fields', className: 'tdb-fields' },
     h(Field, { label: t('detail.created'), value: formatDateTime(session.createdAt, intl) }),
     h(Field, { label: t('detail.last'), value: formatDateTime(session.lastActivity, intl) }),
     h(Field, { label: t('sessions.project'), value: session.project === '' ? '—' : session.project }),
     h(Field, { label: t('detail.hitRate'), value: formatPercent(session.cacheHitRate) })),
-  h('div', {},
+  h('div', { key: 'models' },
     h('h3', { className: 'tdb-section-title', style: { marginBottom: '10px' } }, t('detail.models')),
     models))
 }

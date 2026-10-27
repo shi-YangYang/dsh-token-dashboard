@@ -12,7 +12,7 @@ import { SessionDetail } from '../src/client/components/SessionDetail.js'
 import { SessionTable } from '../src/client/components/Sessions.js'
 import { Trends } from '../src/client/components/Trends.js'
 import { en } from '../src/client/locales.js'
-import type { LocaleLike, T } from '../src/client/lib.js'
+import type { T } from '../src/client/lib.js'
 import type {
   ModelUsage,
   SessionSummary,
@@ -214,13 +214,7 @@ test('the pricing editor renders one editable row per model', () => {
 })
 
 test('the dashboard shell renders its loading state without a Host', () => {
-  const locale: LocaleLike = {
-    register: () => () => {},
-    bind: () => (key: string) => en[key] ?? key,
-    subscribe: () => () => {},
-    getSnapshot: () => ({ id: 'en' }),
-  }
-  const markup = renderToStaticMarkup(h(Dashboard, { locale }))
+  const markup = renderToStaticMarkup(h(Dashboard))
   assert.match(markup, /tdb-skeleton/)
   assert.match(markup, /tdb-root/)
 })

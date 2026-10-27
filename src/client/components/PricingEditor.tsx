@@ -112,11 +112,11 @@ export function PricingEditor({ open, models, pricing, t, onClose, onSave }: Pri
     closeLabel: t('common.close'),
     footer,
   },
-  h('datalist', { id: 'tdb-pricing-currencies' },
+  h('datalist', { key: 'currencies', id: 'tdb-pricing-currencies' },
     SUGGESTED_CURRENCIES.map(currency => h('option', { key: currency, value: currency }))),
   models.length === 0
     ? h('div', { className: 'tdb-empty' }, t('models.empty'))
-    : h('div', { className: 'tdb-pricing-wrap' },
+    : h('div', { key: 'grid', className: 'tdb-pricing-wrap' },
       h('div', { className: 'tdb-pricing-grid' },
         h('div', { className: 'tdb-pricing-head' }, t('models.model')),
         h('div', { className: 'tdb-pricing-head' }, t('cost.currency')),

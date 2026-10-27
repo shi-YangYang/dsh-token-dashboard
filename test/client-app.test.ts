@@ -3,8 +3,7 @@ import assert from 'node:assert/strict'
 import { JSDOM } from 'jsdom'
 import { createElement as h } from 'react'
 
-import { en } from '../src/client/locales.js'
-import type { LocaleLike } from '../src/client/lib.js'
+import { setLanguage } from '../src/client/language.js'
 import { summarize } from '../src/shared/range.js'
 import type {
   ModelUsage,
@@ -80,12 +79,6 @@ const payload: StatsPayload = {
   errors: [],
 }
 
-const locale: LocaleLike = {
-  register: () => () => {},
-  bind: () => (key: string) => en[key] ?? key,
-  subscribe: () => () => {},
-  getSnapshot: () => ({ id: 'en' }),
-}
 
 test('the dashboard mounts, fetches stats, renders data, and refreshes on demand', async () => {
   const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/' })
@@ -109,6 +102,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   const { createRoot } = await import('react-dom/client')
   const { act } = await import('react-dom/test-utils')
   const { Dashboard } = await import('../src/client/App.js')
+  setLanguage('en')
 
   const container = dom.window.document.createElement('div')
   dom.window.document.body.append(container)
@@ -116,7 +110,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
 
   try {
   await act(async () => {
-    root.render(h(Dashboard, { locale, onOpenSession: () => {} }))
+    root.render(h(Dashboard, { onOpenSession: () => {} }))
   })
   await act(async () => {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -134,6 +128,25 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.equal(container.querySelectorAll('.tdb-section-title').length, 3)
   assert.equal(container.textContent?.includes('Lifetime'), false)
   assert.equal(container.textContent?.includes('Read-only'), false)
+
+  const languageChoices = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-lang-choice'))
+  assert.equal(languageChoices.length, 2, 'both language choices are present')
+  const chinese = languageChoices.find(button => button.textContent === '中文')
+  const english = languageChoices.find(button => button.textContent === 'EN')
+  assert.ok(chinese, 'Chinese choice is present')
+  assert.ok(english, 'English choice is present')
+  await act(async () => {
+    chinese.click()
+  })
+  assert.match(container.textContent ?? '', /Token 用量/)
+  assert.match(container.textContent ?? '', /总 Token/)
+  assert.equal(chinese.getAttribute('aria-pressed'), 'true')
+  await act(async () => {
+    english.click()
+  })
+  assert.match(container.textContent ?? '', /Token usage/)
+  assert.match(container.textContent ?? '', /Total tokens/)
+  assert.equal(english.getAttribute('aria-pressed'), 'true')
 
   const days7 = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-range-btn'))
     .find(button => button.textContent === '7 days')

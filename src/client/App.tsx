@@ -13,22 +13,25 @@ import { SessionTable } from './components/Sessions.js'
 import { Trends } from './components/Trends.js'
 import { Button, EmptyState, Notice, SkeletonDashboard } from './components/common.js'
 import { AlertIcon, DatabaseIcon } from './icons.js'
-import { useLocaleSnapshot, useNow, useStats } from './hooks.js'
+import { useNow, useStats } from './hooks.js'
 import { usePricing } from './usePricing.js'
-import { NS, intlLocaleOf, makeT } from './lib.js'
-import type { LocaleLike } from './lib.js'
+import { makeT } from './lib.js'
+import { setLanguage, useLanguage } from './language.js'
+import { en, zh } from './locales.js'
 import { totalTokens } from '../shared/model.js'
 import { CSS } from './styles.js'
 
 export interface DashboardProps {
-  locale: LocaleLike
   onOpenSession?: ((id: string) => void) | undefined
 }
 
-export function Dashboard({ locale, onOpenSession }: DashboardProps): ReactElement {
-  const snapshot = useLocaleSnapshot(locale)
-  const t = useMemo(() => makeT(locale.bind(NS)), [locale, snapshot])
-  const intl = intlLocaleOf(snapshot)
+export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
+  const language = useLanguage()
+  const t = useMemo(
+    () => makeT(key => (language === 'zh' ? zh : en)[key] ?? key),
+    [language],
+  )
+  const intl = language === 'zh' ? 'zh-CN' : 'en-US'
   const now = useNow(60_000)
   const stats = useStats()
   const data = stats.data
@@ -44,9 +47,11 @@ export function Dashboard({ locale, onOpenSession }: DashboardProps): ReactEleme
   const header = (showExport: boolean): ReactElement => h(DashboardHeader, {
     t,
     data,
+    language,
     refreshing: stats.refreshing,
     showExport,
     onRefresh: stats.refresh,
+    onChangeLanguage: setLanguage,
   })
 
   if (stats.loading && data === null) {

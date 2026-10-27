@@ -152,8 +152,16 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 ### 顶部
 
-- 左侧是页面标题，右侧只有刷新与导出
+- 左侧是页面标题，右侧有 **中文 / EN** 切换、刷新与导出
 - 刷新图标在请求期间旋转；没有额外的说明文字或更新时间行
+
+### 中英文切换
+
+- Header 右侧的 `中文 / EN` 是两段式切换，明确显示当前语言。
+- 切换会立即更新页面、图表、表格、详情抽屉、定价弹窗，以及左下角 footer 入口的文字。
+- 选择保存在浏览器 `localStorage`（`dsh-token-dashboard:language:v1`），刷新后保持。
+- 从未选择过时，默认跟随 DSH 当前语言（`zh*` → 中文，其余 → English）。
+- 只影响本插件；DSH 其他区域与插件管理器元数据仍由宿主 locale 控制。
 
 ### KPI
 
@@ -232,6 +240,7 @@ src/
     App.tsx         # 页面编排：数据、布局、弹窗开关
     DashboardHeader.tsx
     usePricing.ts   # 浏览器本地单价状态
+    language.ts     # 本地中英文选择、持久化、订阅
     hooks.ts        # 轮询、宽度、locale、modal
     components/
       Cards.tsx     # KPI
@@ -252,7 +261,7 @@ src/
         Stat.tsx
     locales.ts      # 中英文字典
     styles.ts       # 主题 Token CSS
-test/               # 68 个单元 / 路由 / 渲染 / bundle 注册 / jsdom 集成测试
+test/               # 69 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language 测试
 scripts/
   build-client.mjs  # esbuild + __ModuleLoader__ 包装
   test.mjs          # tsc + node --test
@@ -400,7 +409,7 @@ pnpm typecheck
 pnpm test
 ```
 
-当前 68 个测试全部通过，覆盖：
+当前 69 个测试全部通过，覆盖：
 
 - 四桶求和、流式替换、retry 重开、重复 seq、零用量请求、Unknown 归因
 - 分叉继承前缀不进入自身/全局总量
@@ -409,6 +418,7 @@ pnpm test
 - 真实源适配器：persisted/live 合并、只读 handle、tail 读取、投影 lease 释放
 - HTTP：ETag/304、`refresh=1`、Host 鉴权短路、404/405、verify 匹配与不匹配
 - 范围筛选、模型合并、费用、CSV 注入防护、JSON 脱敏
+- 中英文切换：语言映射、持久化、订阅通知、默认回退
 - 组件 SSR 渲染 + jsdom 中完整挂载、fetch、渲染、手动刷新
 - 编译后的 Client bundle 实际加载、factory 返回、footer 入口与 main 面板渲染
 
@@ -465,7 +475,7 @@ aggregator:
 9. **仅覆盖当前 profile 的持久化根**：其他 profile、其他机器或未落盘的会话不在统计内。
 10. **成本/运行环境**：验证版本为 DSH `0.2.1-rc.3`；插件通过结构化类型访问公开服务，未导入 DSH 内部实现，但仍可能因 DSH 大版本变化需要适配。
 11. **动画/图表细节**：图表为自绘 SVG，不提供缩放、刷选、导出图片等高级交互。
-12. **未做本地化日期格式的全语言覆盖**：使用 `Intl` 跟随宿主 locale（中/英），其他语言回退到 `Intl` 默认。
+12. **Dashboard 语言与宿主语言相互独立**：日期/数字使用 Dashboard 当前语言（`zh-CN` / `en-US`）；其他语言回退到 `Intl` 默认。切换本插件语言不会改变 DSH 其他区域。
 
 ## 发布到 GitHub
 
