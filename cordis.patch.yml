@@ -1,0 +1,7 @@
+# dsh-token-dashboard bundle patch.
+# Installs the plugin as one Loader entry. The plugin reads the durable session
+# logs through the official sessionPersistence service and serves its dashboard
+# data over an authenticated same-origin route.
+- insert:
+    - id: dsh-token-dashboard
+      name: 'dsh-token-dashboard'

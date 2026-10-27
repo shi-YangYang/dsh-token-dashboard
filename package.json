@@ -1,0 +1,80 @@
+{
+  "name": "dsh-token-dashboard",
+  "version": "0.1.0",
+  "description": "Global Token usage analytics for every DeepSeek Harness session: totals, trends, models, sessions, and optional cost estimates.",
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "token",
+    "usage",
+    "dashboard",
+    "analytics"
+  ],
+  "type": "module",
+  "main": "./lib/host/index.js",
+  "types": "./lib/host/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/host/index.d.ts",
+      "default": "./lib/host/index.js"
+    },
+    "./client": "./client/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "locale",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "npm run build:host && npm run build:client",
+    "build:host": "tsc -p tsconfig.host.json",
+    "build:client": "node scripts/build-client.mjs",
+    "pretest": "node scripts/build-client.mjs",
+    "typecheck": "tsc -p tsconfig.host.json --noEmit && tsc -p tsconfig.client.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "node scripts/test.mjs",
+    "prepack": "npm run build",
+    "verify:real": "node scripts/verify-real-sessions.mjs"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shi-YangYang/dsh-token-dashboard.git"
+  },
+  "homepage": "https://github.com/shi-YangYang/dsh-token-dashboard#readme",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^24.10.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "18.3.7",
+    "esbuild": "^0.25.0",
+    "jsdom": "^26.1.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "typescript": "^5.9.0"
+  }
+}

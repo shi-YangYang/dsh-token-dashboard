@@ -1,0 +1,8 @@
+node_modules/
+lib/
+client/
+.test-build/
+tmp/
+*.log
+.DS_Store
+coverage/

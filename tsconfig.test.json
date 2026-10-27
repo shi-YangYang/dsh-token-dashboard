@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.host.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": ".test-build",
+    "declaration": false,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment"
+  },
+  "include": [
+    "src/host/**/*.ts",
+    "src/shared/**/*.ts",
+    "src/client/**/*.ts",
+    "src/client/**/*.tsx",
+    "test/**/*.ts"
+  ]
+}
