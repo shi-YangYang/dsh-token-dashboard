@@ -5,6 +5,8 @@ import type { ReactElement } from 'react'
 
 import { CacheChart, GroupedBars, StackedBars } from './charts.js'
 import { TextInput } from './common.js'
+import { Section } from './ui/Section.js'
+import { SegmentedTabs } from './ui/Tabs.js'
 import type { T } from '../lib.js'
 import { addDays } from '../../shared/dates.js'
 import { formatCompact, formatNumber } from '../../shared/format.js'
@@ -57,55 +59,52 @@ export function Trends({ data, t, intl }: TrendsProps): ReactElement {
     setRange(current => ({ id, from: current.from, to: current.to }))
   }
 
-  return h('section', { className: 'tdb-section', 'aria-label': t('trend.title') },
-    h('div', { className: 'tdb-section-head' },
-      h('h2', { className: 'tdb-section-title' }, t('trend.title')),
-      h('div', { className: 'tdb-range', role: 'group', 'aria-label': t('range.label') },
-        rangeTabs.map(tab => h('button', {
-          key: tab.id,
-          type: 'button',
-          className: 'tdb-range-btn',
-          'aria-pressed': range.id === tab.id,
-          onClick: () => chooseRange(tab.id),
-        }, tab.label)))),
-    range.id === 'custom'
-      ? h('div', { className: 'tdb-custom-range' },
-        h('label', { className: 'tdb-date' },
-          t('range.from'),
-          h(TextInput, {
-            type: 'date',
-            value: range.from,
-            ariaLabel: t('range.from'),
-            onChange: (value: string) => setRange(current => ({ ...current, id: 'custom', from: value })),
-          })),
-        h('label', { className: 'tdb-date' },
-          t('range.to'),
-          h(TextInput, {
-            type: 'date',
-            value: range.to,
-            ariaLabel: t('range.to'),
-            onChange: (value: string) => setRange(current => ({ ...current, id: 'custom', to: value })),
-          })))
-      : null,
-    h('div', { className: 'tdb-chart-toolbar' },
-      h('div', { className: 'tdb-view', role: 'group', 'aria-label': t('trend.views') },
-        views.map(item => h('button', {
-          key: item.id,
-          type: 'button',
-          className: 'tdb-view-btn',
-          'aria-pressed': view === item.id,
-          onClick: () => setView(item.id),
-        }, item.label))),
-      h('div', { className: 'tdb-chart-summary' },
-        t('trend.rangeTotal', {
-          tokens: formatCompact(result.totalTokens, intl),
-          requests: formatNumber(result.requests, intl),
-        }))),
-    view === 'tokens'
-      ? h(StackedBars, { buckets: result.buckets, granularity: result.granularity, t, intl })
-      : view === 'io'
-        ? h(GroupedBars, { buckets: result.buckets, granularity: result.granularity, t, intl })
-        : h(CacheChart, { buckets: result.buckets, granularity: result.granularity, t, intl }),
+  return h(Section, {
+    title: t('trend.title'),
+    actions: h(SegmentedTabs<RangeId>, {
+      items: rangeTabs,
+      value: range.id,
+      onChange: chooseRange,
+      ariaLabel: t('range.label'),
+    }),
+  },
+  range.id === 'custom'
+    ? h('div', { className: 'tdb-custom-range' },
+      h('label', { className: 'tdb-date' },
+        t('range.from'),
+        h(TextInput, {
+          type: 'date',
+          value: range.from,
+          ariaLabel: t('range.from'),
+          onChange: (value: string) => setRange(current => ({ ...current, id: 'custom', from: value })),
+        })),
+      h('label', { className: 'tdb-date' },
+        t('range.to'),
+        h(TextInput, {
+          type: 'date',
+          value: range.to,
+          ariaLabel: t('range.to'),
+          onChange: (value: string) => setRange(current => ({ ...current, id: 'custom', to: value })),
+        })))
+    : null,
+  h('div', { className: 'tdb-chart-toolbar' },
+    h(SegmentedTabs<View>, {
+      items: views,
+      value: view,
+      onChange: setView,
+      ariaLabel: t('trend.views'),
+      kind: 'view',
+    }),
+    h('div', { className: 'tdb-chart-summary' },
+      t('trend.rangeTotal', {
+        tokens: formatCompact(result.totalTokens, intl),
+        requests: formatNumber(result.requests, intl),
+      }))),
+  view === 'tokens'
+    ? h(StackedBars, { buckets: result.buckets, granularity: result.granularity, t, intl })
+    : view === 'io'
+      ? h(GroupedBars, { buckets: result.buckets, granularity: result.granularity, t, intl })
+      : h(CacheChart, { buckets: result.buckets, granularity: result.granularity, t, intl }),
     h(Legend, {
       items: view === 'tokens'
         ? [

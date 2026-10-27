@@ -28,7 +28,6 @@ const result = await build({
   jsx: 'transform',
   jsxFactory: 'h',
   jsxFragment: 'Fragment',
-  define: { __TDB_VERSION__: JSON.stringify(manifest.version) },
   legalComments: 'none',
   logLevel: 'warning',
 })

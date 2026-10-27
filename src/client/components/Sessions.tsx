@@ -1,10 +1,13 @@
 /** Session table: search, two filters, sortable time/total columns. */
 
 import { createElement as h, useMemo, useState } from 'react'
-import type { ChangeEvent, KeyboardEvent, ReactElement } from 'react'
+import type { ChangeEvent, ReactElement } from 'react'
 
 import { Button, EmptyState, Select, Tag } from './common.js'
 import { ChevronLeftIcon, ChevronRightIcon, DatabaseIcon, SearchIcon } from '../icons.js'
+import { Section } from './ui/Section.js'
+import { DataTable } from './ui/DataTable.js'
+import type { DataColumn } from './ui/DataTable.js'
 import type { T } from '../lib.js'
 import { formatDateTime, formatNumber, formatRelative } from '../../shared/format.js'
 import { totalTokens } from '../../shared/model.js'
@@ -85,70 +88,80 @@ export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): R
     resetPage()
   }
 
-  const onRowKey = (event: KeyboardEvent<HTMLTableRowElement>, row: SessionSummary): void => {
-    if (event.key !== 'Enter' && event.key !== ' ') return
-    event.preventDefault()
-    onSelect(row)
-  }
-
-  const renderRow = (row: SessionSummary): ReactElement => {
-    const first = row.models[0]
-    const modelsCell = first === undefined
-      ? '—'
-      : h('span', {},
-        first.model === '' ? t('models.unknown') : first.model,
-        row.models.length > 1
-          ? h('span', { className: 'tdb-model-provider' },
-            ` ${t('sessions.modelsMore', { count: row.models.length - 1 })}`)
-          : null)
-
-    return h('tr', {
-      key: row.id,
-      className: 'tdb-row',
-      tabIndex: 0,
-      onClick: () => onSelect(row),
-      onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => onRowKey(event, row),
+  const columns: Array<DataColumn<SessionSummary>> = [
+    {
+      key: 'session',
+      header: t('sessions.session'),
+      headerClassName: 'tdb-session-cell',
+      render: row => h('div', {},
+        h('div', { className: 'tdb-session-title' }, row.title ?? t('sessions.untitled')),
+        h('div', { className: 'tdb-session-badges' },
+          row.project === '' ? null : h('span', { className: 'tdb-session-sub' }, row.project),
+          row.live ? h(Tag, { tone: 'live' }, t('sessions.live')) : null,
+          row.origin === 'subagent' ? h(Tag, { tone: 'sub' }, t('sessions.subagent')) : null,
+          row.seeded ? h(Tag, {}, t('sessions.fork')) : null,
+          row.stale ? h(Tag, { tone: 'stale' }, t('sessions.stale')) : null)),
     },
-    h('td', {},
-      h('div', { className: 'tdb-session-title' }, row.title ?? t('sessions.untitled')),
-      h('div', { className: 'tdb-session-badges' },
-        row.project === '' ? null : h('span', { className: 'tdb-session-sub' }, row.project),
-        row.live ? h(Tag, { tone: 'live' }, t('sessions.live')) : null,
-        row.origin === 'subagent' ? h(Tag, { tone: 'sub' }, t('sessions.subagent')) : null,
-        row.seeded ? h(Tag, {}, t('sessions.fork')) : null,
-        row.stale ? h(Tag, { tone: 'stale' }, t('sessions.stale')) : null)),
-    h('td', { className: 'tdb-hide-sm' }, modelsCell),
-    h('td', { className: 'tdb-nowrap', title: formatDateTime(row.lastActivity, intl) }, formatRelative(row.lastActivity, now, intl)),
-    h('td', { className: 'tdb-num', style: { fontWeight: 600 } }, formatNumber(totalTokens(row.totals), intl)))
-  }
+    {
+      key: 'models',
+      header: t('sessions.models'),
+      headerClassName: 'tdb-hide-sm',
+      cellClassName: 'tdb-hide-sm',
+      render: row => {
+        const first = row.models[0]
+        return first === undefined
+          ? '—'
+          : h('span', {},
+            first.model === '' ? t('models.unknown') : first.model,
+            row.models.length > 1
+              ? h('span', { className: 'tdb-model-provider' },
+                ` ${t('sessions.modelsMore', { count: row.models.length - 1 })}`)
+              : null)
+      },
+    },
+    {
+      key: 'last',
+      header: h(SortHeader, {
+        label: t('sessions.last'),
+        title: t('sessions.sortLast'),
+        active: sortKey === 'last',
+        direction: sortDir,
+        onClick: () => toggleSort('last'),
+      }),
+      headerProps: { 'aria-sort': activeSort(sortKey === 'last', sortDir) },
+      cellClassName: 'tdb-nowrap',
+      render: row => h('span', { title: formatDateTime(row.lastActivity, intl) },
+        formatRelative(row.lastActivity, now, intl)),
+    },
+    {
+      key: 'total',
+      header: h(SortHeader, {
+        label: t('sessions.total'),
+        title: t('sessions.sortTotal'),
+        active: sortKey === 'total',
+        direction: sortDir,
+        onClick: () => toggleSort('total'),
+      }),
+      headerClassName: 'tdb-num',
+      headerProps: { 'aria-sort': activeSort(sortKey === 'total', sortDir) },
+      cellClassName: 'tdb-num',
+      render: row => h('span', { style: { fontWeight: 600 } }, formatNumber(totalTokens(row.totals), intl)),
+    },
+  ]
 
   const body = rows.length === 0
     ? h(EmptyState, { icon: h(DatabaseIcon, { size: 20 }), title: t('sessions.empty') })
     : filtered.length === 0
       ? h(EmptyState, { icon: h(SearchIcon, { size: 20 }), title: t('sessions.emptyFiltered') })
       : h('div', {},
-        h('div', { className: 'tdb-table-wrap' },
-          h('table', { className: 'tdb-table' },
-            h('thead', {},
-              h('tr', {},
-                h('th', { className: 'tdb-session-cell' }, t('sessions.session')),
-                h('th', { className: 'tdb-hide-sm' }, t('sessions.models')),
-                h(SortHeader, {
-                  label: t('sessions.last'),
-                  title: t('sessions.sortLast'),
-                  active: sortKey === 'last',
-                  direction: sortDir,
-                  onClick: () => toggleSort('last'),
-                }),
-                h(SortHeader, {
-                  label: t('sessions.total'),
-                  title: t('sessions.sortTotal'),
-                  active: sortKey === 'total',
-                  direction: sortDir,
-                  numeric: true,
-                  onClick: () => toggleSort('total'),
-                }))),
-            h('tbody', {}, visible.map(renderRow)))),
+        h(DataTable<SessionSummary>, {
+          rows: visible,
+          columns,
+          rowKey: row => row.id,
+          ariaLabel: t('sessions.title'),
+          rowClassName: 'tdb-row',
+          onRowActivate: onSelect,
+        }),
         h('div', { className: 'tdb-pager' },
           h('span', {}, t('sessions.count', { count: formatNumber(filtered.length, intl) })),
           h('div', { className: 'tdb-pager-actions' },
@@ -168,9 +181,7 @@ export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): R
               onClick: () => setPage(Math.min(pages - 1, current + 1)),
             }, h(ChevronRightIcon, { size: 15 })))))
 
-  return h('section', { className: 'tdb-section', 'aria-label': t('sessions.title') },
-    h('div', { className: 'tdb-section-head' },
-      h('h2', { className: 'tdb-section-title' }, t('sessions.title'))),
+  return h(Section, { title: t('sessions.title'), ariaLabel: t('sessions.title') },
     rows.length === 0
       ? body
       : h('div', {},
@@ -214,16 +225,11 @@ interface SortHeaderProps {
   title: string
   active: boolean
   direction: SortDir
-  numeric?: boolean
   onClick: () => void
 }
 
-function SortHeader({ label, title, active, direction, numeric = false, onClick }: SortHeaderProps): ReactElement {
-  return h('th', {
-    className: numeric ? 'tdb-num' : '',
-    'aria-sort': active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none',
-  },
-  h('button', {
+function SortHeader({ label, title, active, direction, onClick }: SortHeaderProps): ReactElement {
+  return h('button', {
     type: 'button',
     className: 'tdb-sort-btn',
     title,
@@ -232,5 +238,10 @@ function SortHeader({ label, title, active, direction, numeric = false, onClick 
   label,
   active
     ? h('span', { className: 'tdb-sort-arrow', 'aria-hidden': 'true' }, direction === 'asc' ? '▲' : '▼')
-    : null))
+    : null)
+}
+
+function activeSort(active: boolean, direction: SortDir): 'ascending' | 'descending' | 'none' {
+  if (!active) return 'none'
+  return direction === 'asc' ? 'ascending' : 'descending'
 }

@@ -18,7 +18,6 @@
 import { dayKey, hourKey } from '../shared/dates.js'
 import {
   addBuckets,
-  bucketsEqual,
   cacheHitRate,
   emptyBuckets,
   modelKeyOf,
@@ -372,9 +371,4 @@ function cleanText(value: unknown): string {
   if (typeof value !== 'string') return ''
   const trimmed = value.trim()
   return trimmed.length > 160 ? trimmed.slice(0, 160) : trimmed
-}
-
-/** True when two token bucket sets are identical (exported for tests). */
-export function sameBuckets(left: TokenBuckets, right: TokenBuckets): boolean {
-  return bucketsEqual(left, right)
 }

@@ -2,15 +2,11 @@
 
 import type { StatsPayload } from '../shared/types.js'
 
-declare const __TDB_VERSION__: string
-
 /** Locale namespace registered by this plugin. */
 export const NS = 'dsh-token-dashboard'
 
 /** `main` key and `sidebar.panellist` id; they must match. */
 export const PANEL_ID = 'dsh-token-dashboard'
-
-export const CLIENT_VERSION = typeof __TDB_VERSION__ === 'string' ? __TDB_VERSION__ : 'dev'
 
 export const API_VERSION = 1
 
@@ -157,9 +153,4 @@ export async function copyText(text: string): Promise<boolean> {
     // Fall through to the selection-based path.
   }
   return false
-}
-
-/** Stable key for a model row, mirroring the Host contract. */
-export function modelDisplayName(model: string): string {
-  return model === '' ? '' : model
 }

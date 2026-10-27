@@ -138,6 +138,7 @@ export const CSS = `
   margin-bottom: 14px;
 }
 .tdb-section-title { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.tdb-section-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .tdb-range, .tdb-view { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
 .tdb-range-btn, .tdb-view-btn {
@@ -347,7 +348,6 @@ export const CSS = `
   background-size: 200% 100%;
   animation: tdb-shimmer 1.4s linear infinite;
 }
-.tdb-skeleton--kpi { height: 72px; margin: 20px 22px; }
 .tdb-skeleton--chart { height: 260px; }
 .tdb-skeleton--table { height: 180px; }
 
@@ -511,17 +511,6 @@ export const CSS = `
 .tdb-hint { font-size: 11px; color: var(--tdb-ink-2); }
 
 .tdb-nav-icon { display: block; color: currentColor; }
-.tdb-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
 
 @keyframes tdb-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 @keyframes tdb-spin { to { transform: rotate(360deg); } }

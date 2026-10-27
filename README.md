@@ -227,9 +227,27 @@ src/
   client/
     index.ts        # 浏览器 bundle 入口
     plugin.ts       # Slot 注册（main + sidebar.panellist）
-    App.tsx         # 页面骨架、数据 hook、导出/详情/单价弹窗
-    components/     # KPI、图表、模型表、会话表、详情、费用、控件
-    hooks.ts        # 轮询、宽度、locale、弹窗
+    App.tsx         # 页面编排：数据、布局、弹窗开关
+    DashboardHeader.tsx
+    usePricing.ts   # 浏览器本地单价状态
+    hooks.ts        # 轮询、宽度、locale、modal
+    components/
+      Cards.tsx     # KPI
+      Trends.tsx    # 范围 + 图表视图
+      Models.tsx    # 模型表
+      Sessions.tsx  # 会话表
+      SessionDetail.tsx
+      Cost.tsx
+      PricingEditor.tsx
+      ExportMenu.tsx
+      charts.tsx    # 原生 SVG 图表
+      common.tsx    # Button / Select / Modal / Menu / ...
+      ui/           # 通用 UI 原语
+        Section.tsx
+        Tabs.tsx
+        DataTable.tsx
+        Drawer.tsx
+        Stat.tsx
     locales.ts      # 中英文字典
     styles.ts       # 主题 Token CSS
 test/               # 68 个单元 / 路由 / 渲染 / bundle 注册 / jsdom 集成测试
@@ -246,6 +264,25 @@ scripts/
 - `react` 标记为 external，由宿主模块表注入，避免重复 React；
 - 图表用原生 SVG + React，不引入 ECharts/Chart.js；
 - 无数据库、无外部服务、无网络请求（除同源 `/dsh-token-dashboard/*`）。
+
+### 前端组件化与框架选择
+
+**这个插件本来就用 React，不需要再“尝试 React”。** DSH 的 Client Slot 渲染器接收的是 React 元素，`react` 由宿主的浏览器模块表提供（bundle 中标记为 external），所以插件不重复打包 React，也不会出现两个 React 实例。
+
+**为什么不用 Vue：** DSH 的扩展点是 React Slot（owner props、标准 hooks、主题、locale 都由 React 侧提供）。要在 Slot 里使用 Vue，只能在 React 组件内挂一个 DOM 容器、再启动一个 Vue 应用，这会：
+
+- 在 bundle 里再打入一份 Vue runtime；
+- 失去 React Slot 的上下文、生命周期和更新机制；
+- 增加主题、locale、事件桥接的复杂度，并显著增大体积。
+
+因此当前版本继续使用 React，并把页面拆成两层组件：
+
+- **功能组件**：`DashboardHeader`、`KpiCards`、`Trends`、`ModelTable`、`SessionTable`、`SessionDetail`、`CostPanel`、`PricingEditor`、`ExportMenu`，各自只关心一个功能区。
+- **通用原语**：`ui/Section`（带标题/操作区的区块）、`ui/Tabs`（时间范围/图表视图）、`ui/DataTable`（泛型表格，模型/会话/费用三处复用）、`ui/Drawer`（详情抽屉）、`ui/Stat`（详情数字块）。
+- **状态 hooks**：`useStats`（ETag 轮询）、`usePricing`（localStorage 单价）、`useLocaleSnapshot`、`useNow`、`useModal`、`useElementWidth`。
+- `App.tsx` 只负责编排数据与组件，不再包含表格或弹窗的 DOM 结构。
+
+`DataTable<T>` 通过列定义复用表头、单元格、行点击/键盘激活和数字对齐；会话表的可排序表头也只是传入 `header` 与 `aria-sort` 的列，而不是再写一套 `<table>`。
 
 ## Token 统计口径
 

@@ -5,9 +5,11 @@ import type { ReactElement } from 'react'
 
 import { Button } from './common.js'
 import { ChevronDownIcon } from '../icons.js'
+import { DataTable } from './ui/DataTable.js'
+import type { DataColumn } from './ui/DataTable.js'
 import type { T } from '../lib.js'
 import { formatNumber } from '../../shared/format.js'
-import { estimateCost, formatAmount, type PricingTable } from '../../shared/pricing.js'
+import { estimateCost, formatAmount, type ModelCostRow, type PricingTable } from '../../shared/pricing.js'
 import { totalTokens } from '../../shared/model.js'
 import type { ModelUsage } from '../../shared/types.js'
 
@@ -37,22 +39,32 @@ export function CostPanel({ models, pricing, t, intl, onConfigure }: CostProps):
           h(Button, { onClick: onConfigure }, t('cost.set')))))
   }
 
-  const head = h('thead', {},
-    h('tr', {},
-      h('th', {}, t('models.model')),
-      h('th', { className: 'tdb-num' }, t('models.total')),
-      h('th', { className: 'tdb-num' }, t('cost.title'))))
-
-  const rows = estimate.rows.map(row => h('tr', { key: row.key },
-    h('td', {},
-      h('div', { className: `tdb-model-name${row.model === '' ? ' tdb-model-unknown' : ''}` },
-        row.model === '' ? t('models.unknown') : row.model),
-      h('div', { className: 'tdb-model-provider' }, row.provider === '' ? '—' : row.provider)),
-    h('td', { className: 'tdb-num' }, formatNumber(totalTokens(row.tokens), intl)),
-    h('td', { className: 'tdb-num' },
-      row.priced && row.amount !== null && row.currency !== null
+  const columns: Array<DataColumn<ModelCostRow>> = [
+    {
+      key: 'model',
+      header: t('models.model'),
+      render: row => h('div', {},
+        h('div', { className: `tdb-model-name${row.model === '' ? ' tdb-model-unknown' : ''}` },
+          row.model === '' ? t('models.unknown') : row.model),
+        h('div', { className: 'tdb-model-provider' }, row.provider === '' ? '—' : row.provider)),
+    },
+    {
+      key: 'tokens',
+      header: t('models.total'),
+      headerClassName: 'tdb-num',
+      cellClassName: 'tdb-num',
+      render: row => formatNumber(totalTokens(row.tokens), intl),
+    },
+    {
+      key: 'cost',
+      header: t('cost.title'),
+      headerClassName: 'tdb-num',
+      cellClassName: 'tdb-num',
+      render: row => row.priced && row.amount !== null && row.currency !== null
         ? formatAmount(row.amount, row.currency)
-        : h('span', { className: 'tdb-cost-hint' }, t('cost.notSet')))))
+        : h('span', { className: 'tdb-cost-hint' }, t('cost.notSet')),
+    },
+  ]
 
   return h('div', { className: 'tdb-cost' },
     h('button', {
@@ -72,8 +84,12 @@ export function CostPanel({ models, pricing, t, intl, onConfigure }: CostProps):
     }, h(ChevronDownIcon, { size: 14 }))),
     expanded
       ? h('div', { className: 'tdb-cost-body' },
-        h('div', { className: 'tdb-table-wrap' },
-          h('table', { className: 'tdb-table' }, head, h('tbody', {}, rows))),
+        h(DataTable<ModelCostRow>, {
+          rows: estimate.rows,
+          columns,
+          rowKey: row => row.key,
+          ariaLabel: t('cost.title'),
+        }),
         h('div', { className: 'tdb-cost-actions' },
           h(Button, { variant: 'ghost', onClick: onConfigure }, t('cost.manage'))))
       : null)

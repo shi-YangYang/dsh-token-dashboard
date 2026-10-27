@@ -11,9 +11,6 @@ export const API_VERSION = 1
 /** Same-origin route prefix registered on the Harness web server. */
 export const API_PREFIX = '/dsh-token-dashboard'
 
-/** localStorage key for the optional, browser-local pricing table. */
-export const PRICING_STORAGE_KEY = 'dsh-token-dashboard:pricing:v1'
-
 /** The four disjoint buckets reported by providers and folded by token-meter. */
 export interface TokenBuckets {
   /** Provider `inputTokens`: prompt tokens that were neither read from nor written to cache. */

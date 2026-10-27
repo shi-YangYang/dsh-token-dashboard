@@ -4,7 +4,6 @@
  * a rate. All amounts are labelled "Estimated Cost".
  */
 
-import { totalTokens } from './model.js'
 import type { ModelUsage, TokenBuckets } from './types.js'
 
 /** One model's user-configured rates, in `currency` per one million tokens. */
@@ -103,11 +102,6 @@ export function estimateCost(models: ModelUsage[], table: PricingTable): CostEst
     pricedModels,
     unpricedModels,
   }
-}
-
-/** Total tokens for a cost row (used by the UI to show its weight). */
-export function rowTokens(row: ModelCostRow): number {
-  return totalTokens(row.tokens)
 }
 
 /** Parse a persisted pricing table defensively; unknown or invalid rows are dropped. */

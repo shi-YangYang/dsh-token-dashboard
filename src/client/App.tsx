@@ -5,19 +5,19 @@ import type { ReactElement } from 'react'
 
 import { KpiCards } from './components/Cards.js'
 import { CostPanel } from './components/Cost.js'
-import { ExportMenu } from './components/ExportMenu.js'
+import { DashboardHeader } from './components/DashboardHeader.js'
 import { ModelTable } from './components/Models.js'
 import { PricingEditor } from './components/PricingEditor.js'
 import { SessionDetail } from './components/SessionDetail.js'
 import { SessionTable } from './components/Sessions.js'
 import { Trends } from './components/Trends.js'
 import { Button, EmptyState, Notice, SkeletonDashboard } from './components/common.js'
-import { AlertIcon, DatabaseIcon, RefreshIcon } from './icons.js'
+import { AlertIcon, DatabaseIcon } from './icons.js'
 import { useLocaleSnapshot, useNow, useStats } from './hooks.js'
-import { NS, PRICING_KEY, intlLocaleOf, makeT } from './lib.js'
+import { usePricing } from './usePricing.js'
+import { NS, intlLocaleOf, makeT } from './lib.js'
 import type { LocaleLike } from './lib.js'
 import { totalTokens } from '../shared/model.js'
-import { parsePricing, serializePricing, type PricingTable } from '../shared/pricing.js'
 import { CSS } from './styles.js'
 
 export interface DashboardProps {
@@ -32,42 +32,22 @@ export function Dashboard({ locale, onOpenSession }: DashboardProps): ReactEleme
   const now = useNow(60_000)
   const stats = useStats()
   const data = stats.data
+  const { pricing, savePricing } = usePricing()
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [pricingOpen, setPricingOpen] = useState(false)
-  const [pricing, setPricing] = useState<PricingTable>(() => {
-    try {
-      return parsePricing(localStorage.getItem(PRICING_KEY))
-    } catch {
-      return {}
-    }
-  })
 
   const selected = data === null || selectedId === null
     ? null
     : data.sessionRows.find(row => row.id === selectedId) ?? null
 
-  const savePricing = (table: PricingTable): void => {
-    setPricing(table)
-    try {
-      localStorage.setItem(PRICING_KEY, serializePricing(table))
-    } catch {
-      // Private mode: the in-memory table still applies.
-    }
-  }
-
-  const head = (withExport: boolean): ReactElement => h('header', { className: 'tdb-head' },
-    h('h1', { className: 'tdb-title' }, t('panel.title')),
-    h('div', { className: 'tdb-actions' },
-      h(Button, {
-        variant: 'ghost',
-        iconOnly: true,
-        onClick: stats.refresh,
-        busy: stats.refreshing,
-        'aria-label': t('actions.refresh'),
-        title: t('actions.refresh'),
-      }, h('span', { className: stats.refreshing ? 'tdb-spin' : '' }, h(RefreshIcon, { size: 16 }))),
-      withExport && data !== null ? h(ExportMenu, { data, t }) : null))
+  const header = (showExport: boolean): ReactElement => h(DashboardHeader, {
+    t,
+    data,
+    refreshing: stats.refreshing,
+    showExport,
+    onRefresh: stats.refresh,
+  })
 
   if (stats.loading && data === null) {
     return h('div', { className: 'tdb-root' },
@@ -80,7 +60,7 @@ export function Dashboard({ locale, onOpenSession }: DashboardProps): ReactEleme
       h('style', { key: 'tdb-styles' }, CSS),
       h('div', { className: 'tdb-scroll' },
         h('div', { className: 'tdb-container' },
-          head(false),
+          header(false),
           h('div', { className: 'tdb-surface' },
             h('div', { className: 'tdb-section' },
               h(Notice, {
@@ -95,7 +75,7 @@ export function Dashboard({ locale, onOpenSession }: DashboardProps): ReactEleme
       h('style', { key: 'tdb-styles' }, CSS),
       h('div', { className: 'tdb-scroll' },
         h('div', { className: 'tdb-container' },
-          head(false),
+          header(false),
           h('div', { className: 'tdb-surface' },
             h('div', { className: 'tdb-section' },
               h(EmptyState, { icon: h(DatabaseIcon, { size: 22 }), title: t('sessions.empty') }))))))
@@ -111,7 +91,7 @@ export function Dashboard({ locale, onOpenSession }: DashboardProps): ReactEleme
     h('style', { key: 'tdb-styles' }, CSS),
     h('div', { className: 'tdb-scroll' },
       h('div', { className: 'tdb-container' },
-        head(true),
+        header(true),
         problem === null
           ? null
           : h(Notice, { tone: 'warn', icon: h(AlertIcon, { size: 15 }) }, problem),
