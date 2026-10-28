@@ -36,6 +36,8 @@ export const en: LocaleDict = {
   'trend.io': 'Input / Output',
   'trend.cache': 'Cache',
   'trend.empty': 'No usage in this range.',
+  'trend.emptyIo': 'No input or output in this range.',
+  'trend.emptyCache': 'No cache usage in this range.',
   'trend.rangeTotal': '{tokens} tokens · {requests} requests',
 
   'legend.input': 'Input',
@@ -152,6 +154,8 @@ export const zh: LocaleDict = {
   'trend.io': '输入 / 输出',
   'trend.cache': '缓存',
   'trend.empty': '该范围内暂无用量。',
+  'trend.emptyIo': '该范围内暂无输入或输出。',
+  'trend.emptyCache': '该范围内暂无缓存用量。',
   'trend.rangeTotal': '{tokens} Token · {requests} 次请求',
 
   'legend.input': '输入',

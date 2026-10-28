@@ -28,9 +28,9 @@ export const CSS = `
   --tdb-cat-input: var(--tdb-brand);
   --tdb-cat-output: var(--tdb-success);
   --tdb-cat-cache-read: #a9b8eb;
-  --tdb-cat-cache-read: color-mix(in srgb, var(--tdb-brand) 42%, var(--tdb-surface));
+  --tdb-cat-cache-read: color-mix(in srgb, var(--tdb-brand) 55%, var(--tdb-surface));
   --tdb-cat-cache-write: #b9bec7;
-  --tdb-cat-cache-write: color-mix(in srgb, var(--tdb-ink-2) 34%, var(--tdb-surface));
+  --tdb-cat-cache-write: color-mix(in srgb, var(--tdb-ink-2) 42%, var(--tdb-surface));
   --tdb-cat-hit: var(--tdb-ink);
   height: 100%;
   min-height: 0;
@@ -236,15 +236,15 @@ export const CSS = `
 .tdb-chart { position: relative; width: 100%; min-width: 0; }
 .tdb-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .tdb-axis-text { font-size: 10px; fill: var(--tdb-ink-2); }
-.tdb-grid-line { stroke: var(--tdb-line); stroke-width: 1; }
-.tdb-axis-line { stroke: var(--tdb-line); stroke-width: 1; }
+.tdb-grid-line { stroke: var(--tdb-line); stroke-width: 1; opacity: .55; }
+.tdb-axis-line { stroke: var(--tdb-line-strong); stroke-width: 1; }
 .tdb-bar--input { fill: var(--tdb-cat-input); }
 .tdb-bar--output { fill: var(--tdb-cat-output); }
 .tdb-bar--cache-read { fill: var(--tdb-cat-cache-read); }
 .tdb-bar--cache-write { fill: var(--tdb-cat-cache-write); }
-.tdb-chart--dim .tdb-bar { opacity: 0.38; }
-.tdb-chart--dim .tdb-bar--active { opacity: 1; }
-.tdb-line-hit { fill: none; stroke: var(--tdb-cat-hit); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.tdb-bar { shape-rendering: geometricPrecision; }
+.tdb-hover-band { fill: var(--tdb-ink); opacity: 0.045; pointer-events: none; }
+.tdb-line-hit { fill: none; stroke: var(--tdb-cat-hit); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .tdb-dot-hit { fill: var(--tdb-cat-hit); stroke: var(--tdb-surface); stroke-width: 1.5; }
 .tdb-chart-empty {
   position: absolute;
@@ -260,8 +260,8 @@ export const CSS = `
   position: absolute;
   z-index: 5;
   pointer-events: none;
-  min-width: 140px;
-  max-width: min(230px, calc(100vw - 48px));
+  min-width: min(140px, calc(100% - 16px));
+  max-width: min(230px, calc(100% - 16px));
   transform: translate(-50%, 0);
   background: var(--dsw-alias-bg-overlay, var(--tdb-surface));
   border: 1px solid var(--tdb-line-strong);

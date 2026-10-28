@@ -16,6 +16,7 @@ const TOP = 16
 const BOTTOM = 28
 const LEFT = 44
 const RIGHT = 20
+const INTERVALS = 5
 
 type SeriesKey = 'uncachedInputTokens' | 'cacheReadTokens' | 'cacheWriteTokens' | 'outputTokens'
 
@@ -44,6 +45,17 @@ interface Hover {
   x: number
 }
 
+interface Scale {
+  maximum: number
+  step: number
+}
+
+interface BarPart {
+  series: Series
+  y: number
+  height: number
+}
+
 /** Stacked daily/hourly consumption. */
 export function StackedBars({ buckets, granularity, t, intl }: ChartProps): ReactElement {
   const [ref, measured] = useElementWidth<HTMLDivElement>()
@@ -52,16 +64,14 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
   const innerWidth = Math.max(20, width - LEFT - RIGHT)
   const innerHeight = HEIGHT - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
-  const barWidth = clamp(band * 0.64, 1.5, 34)
-  const maximum = niceMax(buckets.reduce((sum, bucket) => sum + totalOf(bucket), 0) === 0
-    ? 0
-    : Math.max(...buckets.map(totalOf)))
+  const barWidth = clamp(band * 0.62, 0.5, 42)
+  const rawMax = buckets.reduce((maximum, bucket) => Math.max(maximum, totalOf(bucket)), 0)
+  const scale = niceScale(rawMax)
   const bottom = TOP + innerHeight
-
-  const toY = (value: number): number => TOP + innerHeight - (value / maximum) * innerHeight
-  const xOf = (index: number): number => LEFT + band * index + (band - barWidth) / 2
+  const toY = (value: number): number => TOP + innerHeight - (value / scale.maximum) * innerHeight
   const centerOf = (index: number): number => LEFT + band * index + band / 2
-  const empty = buckets.every(bucket => totalOf(bucket) === 0)
+  const xOf = (index: number): number => centerOf(index) - barWidth / 2
+  const empty = rawMax === 0
 
   const onMove = (event: ReactMouseEvent<SVGSVGElement>): void => {
     const box = event.currentTarget.getBoundingClientRect()
@@ -87,35 +97,56 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
       viewBox: `0 0 ${width} ${HEIGHT}`,
       role: 'img',
       'aria-label': t('trend.tokens'),
-      className: hover === null ? '' : 'tdb-chart--dim',
       onMouseMove: onMove,
       onMouseLeave: () => setHover(null),
     },
-    ...grid(width, maximum, toY, intl),
+    ...grid(width, scale, toY, intl),
     h('line', { x1: LEFT, y1: bottom, x2: width - RIGHT, y2: bottom, className: 'tdb-axis-line' }),
+    hover === null ? null : h('rect', {
+      className: 'tdb-hover-band',
+      x: LEFT + band * hover.index,
+      y: TOP,
+      width: band,
+      height: innerHeight,
+      rx: Math.min(4, band / 2),
+    }),
     ...buckets.map((bucket, index) => {
       let cursor = 0
-      const active = hover?.index === index
+      const parts: BarPart[] = []
+      for (const series of STACK) {
+        const value = bucket[series.key]
+        const top = toY(cursor + value)
+        let height = Math.max(0, toY(cursor) - top)
+        cursor += value
+        if (value <= 0 || height <= 0) continue
+        let y = top
+        if (height < 1) {
+          y = Math.max(TOP, toY(cursor) - 1)
+          height = toY(cursor) - y
+          if (height <= 0) continue
+        }
+        parts.push({ series, y, height })
+      }
+      const cap = parts[parts.length - 1]
       return h('g', { key: bucket.bucket },
-        ...STACK.map(series => {
-          const value = bucket[series.key]
-          const y = toY(cursor + value)
-          const height = Math.max(0, toY(cursor) - y)
-          cursor += value
-          if (height <= 0) return null
-          return h('rect', {
-            key: series.key,
-            x: xOf(index),
-            y,
-            width: barWidth,
-            height,
-            className: `tdb-bar ${series.className}${active ? ' tdb-bar--active' : ''}`,
+        ...parts.map(part => part === cap
+          ? h('path', {
+            key: part.series.key,
+            d: topRoundedPath(xOf(index), part.y, barWidth, part.height, 3),
+            className: `tdb-bar ${part.series.className}`,
           })
-        }))
+          : h('rect', {
+            key: part.series.key,
+            x: xOf(index),
+            y: part.y,
+            width: barWidth,
+            height: part.height,
+            className: `tdb-bar ${part.series.className}`,
+          })))
     }),
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null ? null : h(Tooltip, {
-      x: clamp(hover.x, 110, width - 110),
+      x: tooltipX(hover.x, width),
       title: hovered === undefined ? '' : `${labelOf(hovered)} · ${formatCompact(totalOf(hovered), intl)}`,
       rows: hovered === undefined ? [] : [
         { label: t('legend.input'), value: formatCompact(hovered.uncachedInputTokens, intl), color: 'var(--tdb-cat-input)' },
@@ -136,12 +167,17 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
   const innerWidth = Math.max(20, width - LEFT - RIGHT)
   const innerHeight = HEIGHT - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
-  const barWidth = clamp(band * 0.28, 1.5, 12)
-  const gap = Math.max(1, barWidth * 0.22)
-  const maximum = niceMax(Math.max(0, ...buckets.map(bucket => Math.max(bucket.uncachedInputTokens, bucket.outputTokens))))
+  const available = Math.max(0.5, band * 0.86)
+  const barWidth = Math.min(22, available * 0.42)
+  const gap = Math.max(0.2, Math.min(barWidth * 0.2, available - 2 * barWidth))
+  const rawMax = buckets.reduce(
+    (maximum, bucket) => Math.max(maximum, bucket.uncachedInputTokens, bucket.outputTokens),
+    0,
+  )
+  const scale = niceScale(rawMax)
   const bottom = TOP + innerHeight
-  const toY = (value: number): number => TOP + innerHeight - (value / maximum) * innerHeight
-  const empty = buckets.every(bucket => bucket.uncachedInputTokens === 0 && bucket.outputTokens === 0)
+  const toY = (value: number): number => TOP + innerHeight - (value / scale.maximum) * innerHeight
+  const empty = rawMax === 0
   const labelOf = (bucket: UsageBucket): string => granularity === 'hour'
     ? `${bucket.bucket.slice(11, 13)}:00`
     : formatDayLabel(bucket.bucket, intl)
@@ -166,41 +202,48 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
       onMouseMove: onMove,
       onMouseLeave: () => setHover(null),
     },
-    ...grid(width, maximum, toY, intl),
+    ...grid(width, scale, toY, intl),
     h('line', { x1: LEFT, y1: bottom, x2: width - RIGHT, y2: bottom, className: 'tdb-axis-line' }),
+    hover === null ? null : h('rect', {
+      className: 'tdb-hover-band',
+      x: LEFT + band * hover.index,
+      y: TOP,
+      width: band,
+      height: innerHeight,
+      rx: Math.min(4, band / 2),
+    }),
     ...buckets.map((bucket, index) => {
       const center = LEFT + band * index + band / 2
-      const inputHeight = Math.max(0, toY(0) - toY(bucket.uncachedInputTokens))
-      const outputHeight = Math.max(0, toY(0) - toY(bucket.outputTokens))
-      const active = hover?.index === index
+      const inputHeight = visibleHeight(bucket.uncachedInputTokens, toY, bottom)
+      const outputHeight = visibleHeight(bucket.outputTokens, toY, bottom)
       return h('g', { key: bucket.bucket },
         inputHeight <= 0 ? null : h('rect', {
           x: center - gap / 2 - barWidth,
           y: bottom - inputHeight,
           width: barWidth,
           height: inputHeight,
-          rx: Math.min(1.5, barWidth / 2),
-          className: `tdb-bar tdb-bar--input${active ? ' tdb-bar--active' : ''}`,
+          rx: Math.min(2.5, barWidth / 2),
+          className: 'tdb-bar tdb-bar--input',
         }),
         outputHeight <= 0 ? null : h('rect', {
           x: center + gap / 2,
           y: bottom - outputHeight,
           width: barWidth,
           height: outputHeight,
-          rx: Math.min(1.5, barWidth / 2),
-          className: `tdb-bar tdb-bar--output${active ? ' tdb-bar--active' : ''}`,
+          rx: Math.min(2.5, barWidth / 2),
+          className: 'tdb-bar tdb-bar--output',
         }))
     }),
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null || hovered === undefined ? null : h(Tooltip, {
-      x: clamp(hover.x, 110, width - 110),
+      x: tooltipX(hover.x, width),
       title: labelOf(hovered),
       rows: [
         { label: t('legend.input'), value: formatCompact(hovered.uncachedInputTokens, intl), color: 'var(--tdb-cat-input)' },
         { label: t('legend.output'), value: formatCompact(hovered.outputTokens, intl), color: 'var(--tdb-cat-output)' },
       ],
     }),
-    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.empty')) : null))
+    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.emptyIo')) : null))
 }
 
 /** Cache read/write bars plus the per-bucket hit rate line. */
@@ -212,17 +255,16 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
   const innerWidth = Math.max(20, width - LEFT - right)
   const innerHeight = HEIGHT - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
-  const barWidth = clamp(band * 0.54, 1.5, 24)
-  const maximum = niceMax(Math.max(0, ...buckets.map(bucket => bucket.cacheReadTokens + bucket.cacheWriteTokens)))
+  const barWidth = clamp(band * 0.5, 0.5, 26)
+  const rawMax = buckets.reduce(
+    (maximum, bucket) => Math.max(maximum, bucket.cacheReadTokens + bucket.cacheWriteTokens),
+    0,
+  )
+  const scale = niceScale(rawMax)
   const bottom = TOP + innerHeight
-  const toY = (value: number): number => TOP + innerHeight - (value / maximum) * innerHeight
+  const toY = (value: number): number => TOP + innerHeight - (value / scale.maximum) * innerHeight
   const hitY = (ratio: number): number => TOP + innerHeight - clamp(ratio, 0, 1) * innerHeight
-  const points = buckets.map((bucket, index) => {
-    const prompt = bucket.uncachedInputTokens + bucket.cacheReadTokens + bucket.cacheWriteTokens
-    const ratio = prompt === 0 ? 0 : bucket.cacheReadTokens / prompt
-    return `${(LEFT + band * index + band / 2).toFixed(2)},${hitY(ratio).toFixed(2)}`
-  }).join(' ')
-  const empty = buckets.every(bucket => bucket.cacheReadTokens === 0 && bucket.cacheWriteTokens === 0)
+  const empty = rawMax === 0
   const labelOf = (bucket: UsageBucket): string => granularity === 'hour'
     ? `${bucket.bucket.slice(11, 13)}:00`
     : formatDayLabel(bucket.bucket, intl)
@@ -236,12 +278,33 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
     setHover({ index, x: LEFT + band * index + band / 2 })
   }
 
+  const hitPoints = buckets.map((bucket, index) => {
+    const prompt = promptOf(bucket)
+    if (prompt <= 0) return null
+    return {
+      index,
+      x: LEFT + band * index + band / 2,
+      y: hitY(bucket.cacheReadTokens / prompt),
+    }
+  })
+  const segments: string[] = []
+  let run: string[] = []
+  for (const point of hitPoints) {
+    if (point === null) {
+      if (run.length > 1) segments.push(run.join(' '))
+      run = []
+      continue
+    }
+    run.push(`${point.x.toFixed(2)},${point.y.toFixed(2)}`)
+  }
+  if (run.length > 1) segments.push(run.join(' '))
+
   const hovered = hover === null ? undefined : buckets[hover.index]
   const hoveredRatio = hovered === undefined
-    ? 0
+    ? null
     : (() => {
-      const prompt = hovered.uncachedInputTokens + hovered.cacheReadTokens + hovered.cacheWriteTokens
-      return prompt === 0 ? 0 : hovered.cacheReadTokens / prompt
+      const prompt = promptOf(hovered)
+      return prompt === 0 ? null : hovered.cacheReadTokens / prompt
     })()
 
   return h('div', { className: 'tdb-chart', ref },
@@ -254,58 +317,63 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
       onMouseMove: onMove,
       onMouseLeave: () => setHover(null),
     },
-    ...grid(width, maximum, toY, intl, right),
+    ...grid(width, scale, toY, intl, right),
     h('text', { x: width - right + 6, y: TOP + 3, className: 'tdb-axis-text' }, '100%'),
     h('text', { x: width - right + 6, y: TOP + innerHeight / 2, className: 'tdb-axis-text' }, '50%'),
-    h('text', { x: width - right + 6, y: bottom }, '0%'),
+    h('text', { x: width - right + 6, y: bottom, className: 'tdb-axis-text' }, '0%'),
     h('line', { x1: LEFT, y1: bottom, x2: width - right, y2: bottom, className: 'tdb-axis-line' }),
+    hover === null ? null : h('rect', {
+      className: 'tdb-hover-band',
+      x: LEFT + band * hover.index,
+      y: TOP,
+      width: band,
+      height: innerHeight,
+      rx: Math.min(4, band / 2),
+    }),
     ...buckets.map((bucket, index) => {
-      const active = hover?.index === index
-      const readHeight = Math.max(0, toY(0) - toY(bucket.cacheReadTokens))
-      const writeHeight = Math.max(0, toY(0) - toY(bucket.cacheWriteTokens))
+      const readHeight = visibleHeight(bucket.cacheReadTokens, toY, bottom)
+      const writeHeight = visibleHeight(bucket.cacheWriteTokens, toY, bottom)
       return h('g', { key: bucket.bucket },
         readHeight <= 0 ? null : h('rect', {
           x: LEFT + band * index + (band - barWidth) / 2,
           y: bottom - readHeight,
           width: barWidth,
           height: readHeight,
-          rx: Math.min(1.5, barWidth / 2),
-          className: `tdb-bar tdb-bar--cache-read${active ? ' tdb-bar--active' : ''}`,
+          rx: Math.min(2.5, barWidth / 2),
+          className: 'tdb-bar tdb-bar--cache-read',
         }),
         writeHeight <= 0 ? null : h('rect', {
           x: LEFT + band * index + (band - barWidth) / 2,
           y: bottom - readHeight - writeHeight,
           width: barWidth,
           height: writeHeight,
-          rx: Math.min(1.5, barWidth / 2),
-          className: `tdb-bar tdb-bar--cache-write${active ? ' tdb-bar--active' : ''}`,
+          rx: Math.min(2.5, barWidth / 2),
+          className: 'tdb-bar tdb-bar--cache-write',
         }))
     }),
-    buckets.length > 1
-      ? h('polyline', { points, className: 'tdb-line-hit' })
-      : null,
-    ...buckets.map((bucket, index) => {
-      const prompt = bucket.uncachedInputTokens + bucket.cacheReadTokens + bucket.cacheWriteTokens
-      const ratio = prompt === 0 ? 0 : bucket.cacheReadTokens / prompt
-      return h('circle', {
-        key: `hit-${bucket.bucket}`,
-        cx: LEFT + band * index + band / 2,
-        cy: hitY(ratio),
-        r: hover?.index === index ? 3.2 : 2,
-        className: 'tdb-dot-hit',
-      })
-    }),
+    ...segments.map((points, index) => h('polyline', {
+      key: `hit-${index}`,
+      points,
+      className: 'tdb-line-hit',
+    })),
+    ...hitPoints.map(point => point === null ? null : h('circle', {
+      key: `dot-${point.index}`,
+      cx: point.x,
+      cy: point.y,
+      r: hover?.index === point.index ? 3.2 : 2,
+      className: 'tdb-dot-hit',
+    })),
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null || hovered === undefined ? null : h(Tooltip, {
-      x: clamp(hover.x, 110, width - 110),
+      x: tooltipX(hover.x, width),
       title: labelOf(hovered),
       rows: [
         { label: t('legend.cacheRead'), value: formatCompact(hovered.cacheReadTokens, intl), color: 'var(--tdb-cat-cache-read)' },
         { label: t('legend.cacheWrite'), value: formatCompact(hovered.cacheWriteTokens, intl), color: 'var(--tdb-cat-cache-write)' },
-        { label: t('legend.hitRate'), value: formatPercent(hoveredRatio), color: 'var(--tdb-cat-hit)' },
+        { label: t('legend.hitRate'), value: hoveredRatio === null ? '—' : formatPercent(hoveredRatio), color: 'var(--tdb-cat-hit)' },
       ],
     }),
-    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.empty')) : null))
+    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.emptyCache')) : null))
 }
 
 interface TooltipProps {
@@ -328,17 +396,17 @@ function Tooltip({ x, title, rows }: TooltipProps): ReactElement {
 
 function grid(
   width: number,
-  maximum: number,
+  scale: Scale,
   toY: (value: number) => number,
   intl: string | undefined,
   right: number = RIGHT,
 ): ReactElement[] {
   const lines: ReactElement[] = []
-  for (let step = 0; step <= 4; step += 1) {
-    const value = (maximum / 4) * step
+  for (let index = 0; index <= INTERVALS; index += 1) {
+    const value = scale.step * index
     const y = toY(value)
     lines.push(h('line', {
-      key: `grid-${step}`,
+      key: `grid-${index}`,
       x1: LEFT,
       y1: y,
       x2: width - right,
@@ -346,7 +414,7 @@ function grid(
       className: 'tdb-grid-line',
     }))
     lines.push(h('text', {
-      key: `axis-${step}`,
+      key: `axis-${index}`,
       x: LEFT - 8,
       y: y + 3,
       textAnchor: 'end',
@@ -388,11 +456,43 @@ function totalOf(bucket: UsageBucket): number {
   return bucket.uncachedInputTokens + bucket.cacheReadTokens + bucket.cacheWriteTokens + bucket.outputTokens
 }
 
-function niceMax(value: number): number {
-  if (!Number.isFinite(value) || value <= 0) return 1
-  const exponent = Math.floor(Math.log10(value))
-  const magnitude = 10 ** exponent
-  const normalized = value / magnitude
+function promptOf(bucket: UsageBucket): number {
+  return bucket.uncachedInputTokens + bucket.cacheReadTokens + bucket.cacheWriteTokens
+}
+
+function niceScale(raw: number): Scale {
+  if (!Number.isFinite(raw) || raw <= 0) return { maximum: INTERVALS, step: 1 }
+  const rough = raw / INTERVALS
+  const magnitude = 10 ** Math.floor(Math.log10(rough))
+  const normalized = rough / magnitude
   const factor = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 2.5 ? 2.5 : normalized <= 5 ? 5 : 10
-  return factor * magnitude
+  const step = Math.max(1, factor * magnitude)
+  return { maximum: step * INTERVALS, step }
+}
+
+function visibleHeight(value: number, toY: (value: number) => number, bottom: number): number {
+  if (value <= 0) return 0
+  return Math.max(1, bottom - toY(value))
+}
+
+function tooltipX(x: number, width: number): number {
+  const edge = Math.min(115, width / 2)
+  return clamp(x, edge, width - edge)
+}
+
+function topRoundedPath(x: number, y: number, width: number, height: number, radius: number): string {
+  const r = Math.max(0, Math.min(radius, width / 2, height))
+  const round = (value: number): string => String(Math.round(value * 100) / 100)
+  if (r <= 0) {
+    return `M${round(x)},${round(y)}h${round(width)}v${round(height)}h${round(-width)}Z`
+  }
+  return [
+    `M${round(x)},${round(y + height)}`,
+    `L${round(x)},${round(y + r)}`,
+    `Q${round(x)},${round(y)} ${round(x + r)},${round(y)}`,
+    `L${round(x + width - r)},${round(y)}`,
+    `Q${round(x + width)},${round(y)} ${round(x + width)},${round(y + r)}`,
+    `L${round(x + width)},${round(y + height)}`,
+    'Z',
+  ].join(' ')
 }

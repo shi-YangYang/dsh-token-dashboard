@@ -175,6 +175,8 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 - 图表上方左侧切换视图（Tokens / Input / Output / Cache），右侧显示该范围的总量与请求数
 - `Today` 按小时展示今天 24 个小时桶；其余范围按自然日、空缺补零
 - 图表悬停可查看该桶四类 Token 与请求数
+- 柱体使用 5 段整齐纵轴刻度、顶部圆角与整列悬停高亮；Input/Output、Cache 各自有独立空态文案
+- 缓存命中率在无 prompt 的空档断开，不再把空白天错误画成 0%
 
 ### 会话表
 
