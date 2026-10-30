@@ -1,4 +1,4 @@
-/** Lifetime KPI row: four values, one quiet sub-line each. */
+/** Range-scoped KPI row: four values, one quiet sub-line each. */
 
 import { createElement as h } from 'react'
 import type { ReactElement } from 'react'
@@ -7,26 +7,32 @@ import type { T } from '../lib.js'
 import { formatCompact, formatNumber, formatPercent } from '../../shared/format.js'
 import { cacheTokens, totalTokens } from '../../shared/model.js'
 import { shareOf } from '../../shared/range.js'
+import type { RangeResult } from '../../shared/range.js'
 import type { StatsPayload } from '../../shared/types.js'
 
 export interface KpiCardsProps {
   data: StatsPayload
+  /** When supplied, the four values and sub-lines follow this range. */
+  result?: RangeResult | undefined
   t: T
   intl: string | undefined
 }
 
-export function KpiCards({ data, t, intl }: KpiCardsProps): ReactElement {
-  const total = totalTokens(data.totals)
-  const input = data.totals.uncachedInputTokens
-  const output = data.totals.outputTokens
-  const cache = cacheTokens(data.totals)
+export function KpiCards({ data, result, t, intl }: KpiCardsProps): ReactElement {
+  const totals = result?.totals ?? data.totals
+  const requests = result?.requests ?? data.requests
+  const hitRate = result?.cacheHitRate ?? data.cacheHitRate
+  const total = totalTokens(totals)
+  const input = totals.uncachedInputTokens
+  const output = totals.outputTokens
+  const cache = cacheTokens(totals)
 
   return h('div', { className: 'tdb-kpis' },
     h(Kpi, {
       label: t('kpi.total'),
       value: formatCompact(total, intl),
       exact: formatNumber(total, intl),
-      sub: t('kpi.requests', { count: formatNumber(data.requests, intl) }),
+      sub: t('kpi.requests', { count: formatNumber(requests, intl) }),
     }),
     h(Kpi, {
       label: t('kpi.input'),
@@ -44,7 +50,7 @@ export function KpiCards({ data, t, intl }: KpiCardsProps): ReactElement {
       label: t('kpi.cache'),
       value: formatCompact(cache, intl),
       exact: formatNumber(cache, intl),
-      sub: t('kpi.hitRate', { rate: formatPercent(data.cacheHitRate) }),
+      sub: t('kpi.hitRate', { rate: formatPercent(hitRate) }),
     }))
 }
 

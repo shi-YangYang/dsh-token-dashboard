@@ -13,6 +13,8 @@ import { SessionTable } from '../src/client/components/Sessions.js'
 import { Trends } from '../src/client/components/Trends.js'
 import { en } from '../src/client/locales.js'
 import type { T } from '../src/client/lib.js'
+import { selectRange } from '../src/shared/range.js'
+import type { RangeResult, RangeSelection } from '../src/shared/range.js'
 import type {
   ModelUsage,
   SessionSummary,
@@ -114,8 +116,41 @@ test('KPI cards render the four lifetime numbers', () => {
   assert.match(markup, /hit rate/)
 })
 
+test('the KPI row uses the selected range result', () => {
+  const result: RangeResult = {
+    granularity: 'day',
+    from: '2026-01-01',
+    to: '2026-01-05',
+    buckets: [],
+    totals: {
+      uncachedInputTokens: 10,
+      cacheReadTokens: 20,
+      cacheWriteTokens: 30,
+      outputTokens: 40,
+    },
+    requests: 1,
+    models: [],
+    cacheHitRate: 0.5,
+    totalTokens: 100,
+  }
+  const markup = renderToStaticMarkup(h(KpiCards, { data: payload, result, t, intl }))
+  assert.match(markup, /100/)
+  assert.match(markup, /1 requests/)
+  assert.match(markup, /50% hit rate/)
+})
+
 test('the trend section renders one chart with two view choices', () => {
-  const markup = renderToStaticMarkup(h(Trends, { data: payload, t, intl }))
+  const range: RangeSelection = { id: '30d', from: '', to: '' }
+  const markup = renderToStaticMarkup(h(Trends, {
+    data: payload,
+    result: selectRange(payload, range),
+    range,
+    view: 'io',
+    onRangeChange: () => {},
+    onViewChange: () => {},
+    t,
+    intl,
+  }))
   assert.match(markup, /Usage/)
   assert.doesNotMatch(markup, /Tokens/)
   assert.match(markup, /Input \/ Output/)

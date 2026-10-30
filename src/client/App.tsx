@@ -11,6 +11,7 @@ import { PricingEditor } from './components/PricingEditor.js'
 import { SessionDetail } from './components/SessionDetail.js'
 import { SessionTable } from './components/Sessions.js'
 import { Trends } from './components/Trends.js'
+import type { ChartView } from './components/Trends.js'
 import { PageTabs } from './components/ui/PageTabs.js'
 import type { PageId } from './components/ui/PageTabs.js'
 import { Button, EmptyState, Notice, SkeletonDashboard } from './components/common.js'
@@ -22,6 +23,8 @@ import { setLanguage, useLanguage } from './language.js'
 import { en, zh } from './locales.js'
 import { totalTokens } from '../shared/model.js'
 import { defaultsForModels, mergePricing } from '../shared/pricing.js'
+import { selectRange } from '../shared/range.js'
+import type { RangeSelection } from '../shared/range.js'
 import { CSS } from './styles.js'
 
 export interface DashboardProps {
@@ -55,6 +58,13 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [page, setPage] = useState<PageId>('overview')
+  const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
+  const [chartView, setChartView] = useState<ChartView>('io')
+  const rangeResult = useMemo(() => selectRange({
+    days: data?.days ?? [],
+    hours: data?.hours ?? [],
+    today: data?.today ?? '',
+  }, range), [data, range])
 
   const selected = data === null || selectedId === null
     ? null
@@ -143,9 +153,18 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
           },
           page === 'overview'
             ? h(Fragment, {},
-              h(KpiCards, { data, t, intl }),
+              h(KpiCards, { data, result: rangeResult, t, intl }),
               h('div', { className: 'tdb-rule' }),
-              h(Trends, { data, t, intl }))
+              h(Trends, {
+                data,
+                result: rangeResult,
+                range,
+                view: chartView,
+                onRangeChange: setRange,
+                onViewChange: setChartView,
+                t,
+                intl,
+              }))
             : page === 'models'
               ? h(ModelTable, { models: data.models, total: totalTokens(data.totals), t, intl })
               : page === 'sessions'

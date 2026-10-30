@@ -46,7 +46,7 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 ### 时间范围
 
 - Usage 区支持今天（按小时）、最近 7 / 30 / 90 天、全部时间、自定义日期区间
-- 范围只作用于 Usage 图表；KPI、模型、会话与费用均为生命周期总量
+- 范围同时作用于 KPI 与 Usage 图表；模型、会话与费用仍为生命周期总量
 - 范围切换只在前端对已聚合的时间桶做筛选，不触发日志重读
 
 ### 图表
@@ -181,12 +181,13 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 ### 概览 / KPI
 
 - 四个数值：Total / Input / Output / Cache tokens
-- 每个数值只有一行补充信息：请求数、占比或缓存命中率
+- 跟随 Usage 图表当前选择的时间范围（Today / 7d / 30d / 90d / All / Custom）
+- 请求数、占比、缓存命中率也按同一范围计算
 - 鼠标悬停数值可查看精确整数
 
 ### 概览 / Usage 图表
 
-- 标题右侧切换时间范围；Custom 时使用自定义日历组件选择起止日期
+- 标题右侧切换时间范围，KPI 与图表同时更新；Custom 时使用自定义日历组件选择起止日期
 - 日期范围、项目/模型筛选、货币选择全部为项目内组件，不再使用原生 `select` / `date` / `datalist`
 - 图表上方左侧切换视图（Input / Output / Cache），右侧显示该范围的总量与请求数
 - `Today` 按小时展示今天 24 个小时桶；其余范围按自然日、空缺补零
@@ -291,7 +292,7 @@ src/
         Stat.tsx
     locales.ts      # 中英文字典
     styles.ts       # 主题 Token CSS
-test/               # 83 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price / ui 测试
+test/               # 84 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price / ui 测试
 scripts/
   build-client.mjs  # esbuild + __ModuleLoader__ 包装
   test.mjs          # tsc + node --test
@@ -442,7 +443,7 @@ pnpm typecheck
 pnpm test
 ```
 
-当前 83 个测试全部通过，覆盖：
+当前 84 个测试全部通过，覆盖：
 
 - 四桶求和、流式替换、retry 重开、重复 seq、零用量请求、Unknown 归因
 - 分叉继承前缀不进入自身/全局总量
@@ -499,7 +500,7 @@ aggregator:
 
 1. **内存缓存不跨进程持久化**：重启 DSH 后第一次打开会重新扫描所有会话日志；在本机 23 个会话、约 16k 事件规模下为毫秒级。没有磁盘索引/SQLite，避免引入不可重建的账本。
 2. **首次打开成本与历史总量成正比**：采用并发 3 的批处理，但超大历史（数十万事件）仍可能需要数秒；这是只读扫描，不阻塞 DSH 主界面。
-3. **范围只作用于 Usage 图表**：KPI、模型、会话和费用始终是生命周期总量；这样避免同一页面混用两套范围口径。
+3. **范围作用于 KPI 与 Usage 图表**：模型、会话和费用仍为生命周期总量；KPI 跟随图表范围，图表与数值使用同一口径。
 4. **费用估算是列表价近似**：内置 DeepSeek 高峰价与其他模型 OpenRouter 列表价，不做币种换算；订阅制 provider 的实际扣费可能不同。在线刷新只在显式点击时发生。
 5. **会话跳转依赖 `uiWorkspace.openSession`**：宿主不提供该服务时按钮隐藏或不生效。
 6. **覆盖单价与在线缓存存在浏览器本地**：卸载插件或更换浏览器不会自动清理/迁移 `localStorage` 中的用户覆盖和在线价目；需要时可在浏览器站点数据中删除。

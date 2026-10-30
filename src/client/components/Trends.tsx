@@ -1,6 +1,6 @@
 /** One usage chart with a range control and three view modes. */
 
-import { createElement as h, useMemo, useState } from 'react'
+import { createElement as h } from 'react'
 import type { ReactElement } from 'react'
 
 import { CacheChart, GroupedBars } from './charts.js'
@@ -10,27 +10,32 @@ import { SegmentedTabs } from './ui/Tabs.js'
 import type { T } from '../lib.js'
 import { addDays } from '../../shared/dates.js'
 import { formatCompact, formatNumber } from '../../shared/format.js'
-import { selectRange } from '../../shared/range.js'
-import type { RangeId, RangeSelection } from '../../shared/range.js'
+import type { RangeId, RangeResult, RangeSelection } from '../../shared/range.js'
 import type { StatsPayload } from '../../shared/types.js'
 
-type View = 'io' | 'cache'
+export type ChartView = 'io' | 'cache'
 
 export interface TrendsProps {
   data: StatsPayload
+  result: RangeResult
+  range: RangeSelection
+  view: ChartView
+  onRangeChange: (range: RangeSelection) => void
+  onViewChange: (view: ChartView) => void
   t: T
   intl: string | undefined
 }
 
-export function Trends({ data, t, intl }: TrendsProps): ReactElement {
-  const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
-  const [view, setView] = useState<View>('io')
-
-  const result = useMemo(() => selectRange({
-    days: data.days,
-    hours: data.hours,
-    today: data.today,
-  }, range), [data, range])
+export function Trends({
+  data,
+  result,
+  range,
+  view,
+  onRangeChange,
+  onViewChange,
+  t,
+  intl,
+}: TrendsProps): ReactElement {
 
   const rangeTabs: Array<{ id: RangeId; label: string }> = [
     { id: 'today', label: t('range.today') },
@@ -41,21 +46,21 @@ export function Trends({ data, t, intl }: TrendsProps): ReactElement {
     { id: 'custom', label: t('range.custom') },
   ]
 
-  const views: Array<{ id: View; label: string }> = [
+  const views: Array<{ id: ChartView; label: string }> = [
     { id: 'io', label: t('trend.io') },
     { id: 'cache', label: t('trend.cache') },
   ]
 
   const chooseRange = (id: RangeId): void => {
     if (id === 'custom') {
-      setRange(current => ({
+      onRangeChange({
         id,
-        from: current.from === '' ? addDays(data.today, -29) : current.from,
-        to: current.to === '' ? data.today : current.to,
-      }))
+        from: range.from === '' ? addDays(data.today, -29) : range.from,
+        to: range.to === '' ? data.today : range.to,
+      })
       return
     }
-    setRange(current => ({ id, from: current.from, to: current.to }))
+    onRangeChange({ id, from: range.from, to: range.to })
   }
 
   return h(Section, {
@@ -78,7 +83,7 @@ export function Trends({ data, t, intl }: TrendsProps): ReactElement {
           max: range.to,
           previousLabel: t('date.previous'),
           nextLabel: t('date.next'),
-          onChange: (value: string) => setRange(current => ({ ...current, id: 'custom', from: value })),
+          onChange: (value: string) => onRangeChange({ ...range, id: 'custom', from: value }),
         })),
       h('label', { className: 'tdb-date' },
         t('range.to'),
@@ -89,14 +94,14 @@ export function Trends({ data, t, intl }: TrendsProps): ReactElement {
           min: range.from,
           previousLabel: t('date.previous'),
           nextLabel: t('date.next'),
-          onChange: (value: string) => setRange(current => ({ ...current, id: 'custom', to: value })),
+          onChange: (value: string) => onRangeChange({ ...range, id: 'custom', to: value }),
         })))
     : null,
   h('div', { className: 'tdb-chart-toolbar' },
-    h(SegmentedTabs<View>, {
+    h(SegmentedTabs<ChartView>, {
       items: views,
       value: view,
-      onChange: setView,
+      onChange: onViewChange,
       ariaLabel: t('trend.views'),
       kind: 'view',
     }),
