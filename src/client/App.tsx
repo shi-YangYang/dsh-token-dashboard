@@ -231,6 +231,12 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
                   priceError: onlineError,
                   onRefreshPrices: () => { void refreshOnline(data.models) },
                   onConfigure: () => setPricingOpen(true),
+                  syncInterval,
+                  onSyncIntervalChange: (value: SyncInterval) => {
+                    setSyncInterval(value)
+                    saveSyncInterval(value)
+                  },
+                  autoSync: syncInterval !== 'off',
                 }))))),
     h(SessionDetail, {
       session: selected,

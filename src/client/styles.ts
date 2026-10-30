@@ -192,8 +192,11 @@ export const CSS = `
 .tdb-cost-summary-main { min-width: 0; }
 .tdb-cost-summary-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
 .tdb-cost-summary-actions { margin-left: auto; }
-.tdb-cost-sync { display: inline-flex; align-items: center; gap: 6px; }
-.tdb-sync-select { width: 104px; max-width: 104px; }
+.tdb-cost-sync-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 8px; padding: 8px 10px; border: 1px solid var(--tdb-line); border-radius: 9px; background: var(--tdb-surface-2); }
+.tdb-cost-sync-copy { min-width: 0; }
+.tdb-cost-sync-title { font-size: 12px; font-weight: 600; }
+.tdb-cost-sync-hint { font-size: 11px; color: var(--tdb-ink-2); }
+.tdb-sync-select { width: 120px; max-width: 120px; }
 .tdb-sync-select .tdb-select-trigger { height: 30px; }
 .tdb-cost-summary-value { font-size: 28px; line-height: 1.15; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .tdb-cost-meta { font-size: 11px; color: var(--tdb-ink-2); overflow-wrap: anywhere; }

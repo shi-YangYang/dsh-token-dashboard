@@ -232,6 +232,8 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
 
   await switchTab('Costs')
   assert.match(container.textContent ?? '', /Estimated cost/)
+  assert.match(container.textContent ?? '', /Auto sync/)
+  assert.match(container.textContent ?? '', /6 hours/)
   assert.match(container.textContent ?? '', /\$0\.001032/)
   assert.match(container.textContent ?? '', /Built-in/)
   assert.equal(container.textContent?.includes('No prices set'), false)

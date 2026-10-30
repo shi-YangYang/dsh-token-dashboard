@@ -135,19 +135,21 @@ export function CostPage(props: CostProps): ReactElement {
                 ? h('span', { className: 'tdb-cost-hint' }, t('cost.unpriced', { count: estimate.unpricedModels }))
                 : null)),
           h('div', { className: 'tdb-cost-actions tdb-cost-summary-actions' },
-            syncInterval !== undefined && onSyncIntervalChange !== undefined
-              ? h('div', { className: 'tdb-cost-sync' },
-                h('span', { className: 'tdb-cost-hint' }, t('sync.label')),
-                h(Select, {
-                  value: syncInterval,
-                  options: SYNC_INTERVALS.map(value => ({ value, label: t(`sync.${value}`) })),
-                  onChange: value => onSyncIntervalChange(value as SyncInterval),
-                  ariaLabel: t('sync.label'),
-                  className: 'tdb-sync-select',
-                }))
-              : null,
             h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel),
             h(Button, { onClick: onConfigure }, t('cost.manage')))),
+        syncInterval !== undefined && onSyncIntervalChange !== undefined
+          ? h('div', { className: 'tdb-cost-sync-row' },
+            h('div', { className: 'tdb-cost-sync-copy' },
+              h('div', { className: 'tdb-cost-sync-title' }, t('sync.label')),
+              h('div', { className: 'tdb-cost-sync-hint' }, t('sync.hint'))),
+            h(Select, {
+              value: syncInterval,
+              options: SYNC_INTERVALS.map(value => ({ value, label: t(`sync.${value}`) })),
+              onChange: value => onSyncIntervalChange(value as SyncInterval),
+              ariaLabel: t('sync.label'),
+              className: 'tdb-sync-select',
+            }))
+          : null,
         priceError ? h('div', { className: 'tdb-error-text', style: { marginTop: '6px' } }, t('cost.refreshError')) : null,
         h(CostTable, { rows: estimate.rows, t, intl })))
 }
