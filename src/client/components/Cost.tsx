@@ -102,23 +102,23 @@ export function CostPage(props: CostProps): ReactElement {
   const totalLabel = totalLabelOf(estimate)
   const refreshLabel = refreshingPrices ? t('cost.refreshing') : t('cost.refresh')
 
-  return h(Section, {
-    ariaLabel: t('cost.title'),
-    actions: h('div', { className: 'tdb-cost-actions' },
-      h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel),
-      h(Button, { onClick: onConfigure }, t('cost.manage'))),
-  },
-  models.length === 0
-    ? h(EmptyState, { icon: h(ChartIcon, { size: 20 }), title: t('models.empty') })
-    : h('div', {},
-      h('div', { className: 'tdb-cost-summary' },
-        h('div', { className: 'tdb-cost-summary-value' }, totalLabel ?? '—'),
-        estimate.unpricedModels > 0
-          ? h('span', { className: 'tdb-cost-hint' }, t('cost.unpriced', { count: estimate.unpricedModels }))
-          : null),
-      h('div', { className: 'tdb-cost-meta' }, sourceText(t, intl, onlineAt, onlineSource)),
-      priceError ? h('div', { className: 'tdb-error-text', style: { marginTop: '6px' } }, t('cost.refreshError')) : null,
-      h(CostTable, { rows: estimate.rows, t, intl })))
+  return h(Section, { ariaLabel: t('cost.title') },
+    models.length === 0
+      ? h(EmptyState, { icon: h(ChartIcon, { size: 20 }), title: t('models.empty') })
+      : h('div', { className: 'tdb-cost-page' },
+        h('div', { className: 'tdb-cost-summary' },
+          h('div', { className: 'tdb-cost-summary-main' },
+            h('div', { className: 'tdb-cost-summary-value' }, totalLabel ?? '—'),
+            h('div', { className: 'tdb-cost-summary-meta' },
+              h('span', { className: 'tdb-cost-meta' }, sourceText(t, intl, onlineAt, onlineSource)),
+              estimate.unpricedModels > 0
+                ? h('span', { className: 'tdb-cost-hint' }, t('cost.unpriced', { count: estimate.unpricedModels }))
+                : null)),
+          h('div', { className: 'tdb-cost-actions tdb-cost-summary-actions' },
+            h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel),
+            h(Button, { onClick: onConfigure }, t('cost.manage')))),
+        priceError ? h('div', { className: 'tdb-error-text', style: { marginTop: '6px' } }, t('cost.refreshError')) : null,
+        h(CostTable, { rows: estimate.rows, t, intl })))
 }
 
 function CostTable({ rows, t, intl }: {

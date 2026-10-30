@@ -187,7 +187,11 @@ export const CSS = `
   box-shadow: inset 0 -1px 0 var(--tdb-line);
 }
 .tdb-table-panel > .tdb-pager { flex: 0 0 auto; }
+.tdb-cost-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .tdb-cost-summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tdb-cost-summary-main { min-width: 0; }
+.tdb-cost-summary-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.tdb-cost-summary-actions { margin-left: auto; }
 .tdb-cost-summary-value { font-size: 28px; line-height: 1.15; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .tdb-cost-meta { font-size: 11px; color: var(--tdb-ink-2); overflow-wrap: anywhere; }
 
