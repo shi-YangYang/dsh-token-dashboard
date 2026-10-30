@@ -192,6 +192,9 @@ export const CSS = `
 .tdb-cost-summary-main { min-width: 0; }
 .tdb-cost-summary-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
 .tdb-cost-summary-actions { margin-left: auto; }
+.tdb-cost-sync { display: inline-flex; align-items: center; gap: 6px; }
+.tdb-sync-select { width: 104px; max-width: 104px; }
+.tdb-sync-select .tdb-select-trigger { height: 30px; }
 .tdb-cost-summary-value { font-size: 28px; line-height: 1.15; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .tdb-cost-meta { font-size: 11px; color: var(--tdb-ink-2); overflow-wrap: anywhere; }
 

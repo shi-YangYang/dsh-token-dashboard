@@ -36,7 +36,7 @@ export interface PriceServiceOptions {
 }
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/models'
-const DEFAULT_TTL_MS = 6 * 60 * 60 * 1_000
+const DEFAULT_TTL_MS = 5 * 60 * 1_000
 
 export interface OpenRouterEntry {
   id: string

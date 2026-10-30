@@ -6,6 +6,8 @@ import type { ReactElement } from 'react'
 import { Button, EmptyState } from './common.js'
 import { ChartIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
 import { Section } from './ui/Section.js'
+import { Select } from './ui/Select.js'
+import { SYNC_INTERVALS, type SyncInterval } from '../sync.js'
 import { DataTable } from './ui/DataTable.js'
 import type { DataColumn } from './ui/DataTable.js'
 import type { T } from '../lib.js'
@@ -34,6 +36,9 @@ export interface CostProps {
   priceError: boolean
   onRefreshPrices: () => void
   onConfigure: () => void
+  syncInterval?: SyncInterval | undefined
+  onSyncIntervalChange?: ((value: SyncInterval) => void) | undefined
+  autoSync?: boolean | undefined
 }
 
 /** Compact collapsible cost row, kept for the overview composition. */
@@ -48,6 +53,7 @@ export function CostPanel({
   priceError,
   onRefreshPrices,
   onConfigure,
+  autoSync,
 }: CostProps): ReactElement | null {
   const [expanded, setExpanded] = useState(false)
   if (models.length === 0) return null
@@ -86,7 +92,7 @@ export function CostPanel({
     expanded
       ? h('div', { className: 'tdb-cost-body' },
         h('div', { className: 'tdb-cost-pricebar' },
-          h('span', { className: 'tdb-cost-hint' }, sourceText(t, intl, onlineAt, onlineSource)),
+          h('span', { className: 'tdb-cost-hint' }, sourceText(t, intl, onlineAt, onlineSource, autoSync === true)),
           h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel)),
         priceError ? h('div', { className: 'tdb-error-text' }, t('cost.refreshError')) : null,
         h(CostTable, { rows: estimate.rows, t, intl }),
@@ -97,7 +103,21 @@ export function CostPanel({
 
 /** Dedicated Costs page. */
 export function CostPage(props: CostProps): ReactElement {
-  const { models, pricing, t, intl, onlineAt, onlineSource, refreshingPrices, priceError, onRefreshPrices, onConfigure } = props
+  const {
+    models,
+    pricing,
+    t,
+    intl,
+    onlineAt,
+    onlineSource,
+    refreshingPrices,
+    priceError,
+    onRefreshPrices,
+    onConfigure,
+    syncInterval,
+    onSyncIntervalChange,
+    autoSync,
+  } = props
   const estimate = estimateCost([...models], pricing)
   const totalLabel = totalLabelOf(estimate)
   const refreshLabel = refreshingPrices ? t('cost.refreshing') : t('cost.refresh')
@@ -110,11 +130,22 @@ export function CostPage(props: CostProps): ReactElement {
           h('div', { className: 'tdb-cost-summary-main' },
             h('div', { className: 'tdb-cost-summary-value' }, totalLabel ?? '—'),
             h('div', { className: 'tdb-cost-summary-meta' },
-              h('span', { className: 'tdb-cost-meta' }, sourceText(t, intl, onlineAt, onlineSource)),
+              h('span', { className: 'tdb-cost-meta' }, sourceText(t, intl, onlineAt, onlineSource, autoSync === true)),
               estimate.unpricedModels > 0
                 ? h('span', { className: 'tdb-cost-hint' }, t('cost.unpriced', { count: estimate.unpricedModels }))
                 : null)),
           h('div', { className: 'tdb-cost-actions tdb-cost-summary-actions' },
+            syncInterval !== undefined && onSyncIntervalChange !== undefined
+              ? h('div', { className: 'tdb-cost-sync' },
+                h('span', { className: 'tdb-cost-hint' }, t('sync.label')),
+                h(Select, {
+                  value: syncInterval,
+                  options: SYNC_INTERVALS.map(value => ({ value, label: t(`sync.${value}`) })),
+                  onChange: value => onSyncIntervalChange(value as SyncInterval),
+                  ariaLabel: t('sync.label'),
+                  className: 'tdb-sync-select',
+                }))
+              : null,
             h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel),
             h(Button, { onClick: onConfigure }, t('cost.manage')))),
         priceError ? h('div', { className: 'tdb-error-text', style: { marginTop: '6px' } }, t('cost.refreshError')) : null,
@@ -193,9 +224,15 @@ function totalLabelOf(estimate: CostEstimate): string | null {
   return estimate.totals.map(entry => formatAmount(entry.amount, entry.currency)).join(' + ')
 }
 
-function sourceText(t: T, intl: string | undefined, onlineAt: number, onlineSource: string): string {
+function sourceText(
+  t: T,
+  intl: string | undefined,
+  onlineAt: number,
+  onlineSource: string,
+  auto: boolean,
+): string {
   if (onlineAt > 0) {
-    return t('cost.autoSource', {
+    return t(auto ? 'cost.autoSource' : 'cost.onlineSource', {
       source: onlineSource === '' ? 'OpenRouter' : onlineSource,
       when: formatDateTime(onlineAt, intl),
     })

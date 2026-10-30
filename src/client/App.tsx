@@ -25,10 +25,9 @@ import { totalTokens } from '../shared/model.js'
 import { defaultsForModels, mergePricing } from '../shared/pricing.js'
 import { selectRange } from '../shared/range.js'
 import type { RangeSelection } from '../shared/range.js'
+import { SYNC_INTERVAL_MS, readSyncInterval, saveSyncInterval, type SyncInterval } from './sync.js'
 import { CSS } from './styles.js'
 
-const AUTO_PRICE_SYNC_MS = 24 * 60 * 60 * 1_000
-const AUTO_PRICE_CHECK_MS = 6 * 60 * 60 * 1_000
 const AUTO_PRICE_INITIAL_DELAY_MS = 3_000
 
 export interface DashboardProps {
@@ -64,6 +63,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   const [page, setPage] = useState<PageId>('overview')
   const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
   const [chartView, setChartView] = useState<ChartView>('io')
+  const [syncInterval, setSyncInterval] = useState<SyncInterval>(readSyncInterval)
   const priceModelsRef = useRef(models)
   const onlineRef = useRef(online)
   const onlineAtRef = useRef(onlineAt)
@@ -78,7 +78,8 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   )
 
   useEffect(() => {
-    if (priceModelsRef.current.length === 0) return
+    const intervalMs = SYNC_INTERVAL_MS[syncInterval]
+    if (intervalMs <= 0 || priceModelsRef.current.length === 0) return
     let stopped = false
     let inFlight = false
     const sync = async (): Promise<void> => {
@@ -86,7 +87,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
       const current = priceModelsRef.current
       if (current.length === 0) return
       const names = [...new Set(current.map(model => model.model.trim().toLowerCase()).filter(name => name !== ''))]
-      const fresh = onlineAtRef.current > 0 && Date.now() - onlineAtRef.current < AUTO_PRICE_SYNC_MS
+      const fresh = onlineAtRef.current > 0 && Date.now() - onlineAtRef.current < intervalMs
       const missing = names.some(name => onlineRef.current[name] === undefined)
       if (fresh && !missing) return
       inFlight = true
@@ -97,13 +98,13 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
       }
     }
     const initial = setTimeout(() => { void sync() }, AUTO_PRICE_INITIAL_DELAY_MS)
-    const timer = setInterval(() => { void sync() }, AUTO_PRICE_CHECK_MS)
+    const timer = setInterval(() => { void sync() }, intervalMs)
     return () => {
       stopped = true
       clearTimeout(initial)
       clearInterval(timer)
     }
-  }, [priceModelKey])
+  }, [priceModelKey, syncInterval])
   const rangeResult = useMemo(() => selectRange({
     days: data?.days ?? [],
     hours: data?.hours ?? [],
