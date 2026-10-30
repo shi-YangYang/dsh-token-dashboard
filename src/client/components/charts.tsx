@@ -148,8 +148,8 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
             className: `tdb-bar ${part.series.className}`,
           })))
     }),
-    ...xLabels(buckets, band, width, bottom, labelOf),
-    hover === null ? null : h(Tooltip, {
+    ...xLabels(buckets, band, width, bottom, labelOf)),
+  hover === null ? null : h(Tooltip, {
       x: tooltipX(hover.x, width),
       y: tooltipY(hover.y, height),
       title: hovered === undefined ? '' : `${labelOf(hovered)} · ${formatCompact(totalOf(hovered), intl)}`,
@@ -161,7 +161,7 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
         { label: t('sessions.requests'), value: String(hovered.requests), color: undefined },
       ],
     }),
-    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.empty')) : null))
+    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.empty')) : null)
 }
 
 /** Two bars per bucket: uncached input and output. */
@@ -241,8 +241,8 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
           className: 'tdb-bar tdb-bar--output',
         }))
     }),
-    ...xLabels(buckets, band, width, bottom, labelOf),
-    hover === null || hovered === undefined ? null : h(Tooltip, {
+    ...xLabels(buckets, band, width, bottom, labelOf)),
+  hover === null || hovered === undefined ? null : h(Tooltip, {
       x: tooltipX(hover.x, width),
       y: tooltipY(hover.y, height),
       title: labelOf(hovered),
@@ -253,7 +253,7 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
         { label: t('sessions.requests'), value: String(hovered.requests), color: undefined },
       ],
     }),
-    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.emptyIo')) : null))
+    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.emptyIo')) : null)
 }
 
 /** Cache read/write bars plus the per-bucket hit rate line. */
@@ -375,8 +375,8 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
       r: hover?.index === point.index ? 3.2 : 2,
       className: 'tdb-dot-hit',
     })),
-    ...xLabels(buckets, band, width, bottom, labelOf),
-    hover === null || hovered === undefined ? null : h(Tooltip, {
+    ...xLabels(buckets, band, width, bottom, labelOf)),
+  hover === null || hovered === undefined ? null : h(Tooltip, {
       x: tooltipX(hover.x, width),
       y: tooltipY(hover.y, height),
       title: labelOf(hovered),
@@ -386,7 +386,7 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
         { label: t('legend.hitRate'), value: hoveredRatio === null ? '—' : formatPercent(hoveredRatio), color: 'var(--tdb-cat-hit)' },
       ],
     }),
-    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.emptyCache')) : null))
+    empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.emptyCache')) : null)
 }
 
 interface TooltipProps {
