@@ -84,7 +84,7 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 - **内置价目**：把当前 OpenRouter 可获取的全部有效模型（生成快照 357 个）与 DeepSeek 官方价目内置，已知模型打开即估算，无需先手填；未知模型显示 **Not set**
 - 内置 DeepSeek 官方 2026-10-30 **高峰价**（非高峰为半价），其他模型取 OpenRouter 公开列表价，币种 USD / 1M tokens
 - 可手动覆盖任意单价；**Clear overrides** 恢复内置/在线默认
-- **自动同步**：费用页可选择 **关闭 / 5 分钟 / 15 分钟 / 30 分钟 / 1 小时 / 6 小时 / 12 小时 / 24 小时**（默认 6 小时）；打开页面约 3 秒后首检，之后按所选间隔检查；Host 代理请求 OpenRouter 免费 API，失败静默回退内置价
+- **自动同步**：顶部 topbar（中英文切换旁）可选择 **关闭 / 5 分钟 / 15 分钟 / 30 分钟 / 1 小时 / 6 小时 / 12 小时 / 24 小时**（默认 6 小时）；打开页面约 3 秒后首检，之后按所选间隔检查；Host 代理请求 OpenRouter 免费 API，失败静默回退内置价
 - 仍可手动点击 **Refresh online** 立即同步
 - 用户单价与在线缓存只保存在当前浏览器 `localStorage`，不做币种换算
 
@@ -155,7 +155,8 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 ### 顶部
 
-- 左侧是页面标题，右侧有 **中文 / EN** 切换、刷新与导出
+- 左侧是页面标题，右侧有 **中文 / EN** 切换、**Auto sync 间隔**、刷新与导出
+- Auto sync 间隔位于中英文切换旁，可选关闭 / 5m / 15m / 30m / 1h / 6h / 12h / 24h
 - 刷新图标在请求期间旋转；没有额外的说明文字或更新时间行
 
 ### 页面切换与分页
@@ -209,7 +210,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 1. 费用页顶部显示 **预估总额**；已知模型会直接用内置价目计算，未知模型才需要 **Set prices**
 2. 下方是逐模型费用表，8 个/页；表格上方显示价目来源（内置 / OpenRouter）与刷新按钮
-3. 费用页可选择自动同步间隔（关闭 / 5m / 15m / 30m / 1h / 6h / 12h / 24h）；页面打开约 3 秒后首检，之后按所选间隔同步 OpenRouter 免费公开 API（Host 代理，无 API Key）；**Refresh online** 可立即手动同步
+3. 顶部 topbar（中英文切换旁）可选择自动同步间隔（关闭 / 5m / 15m / 30m / 1h / 6h / 12h / 24h）；页面打开约 3 秒后首检，之后按所选间隔同步 OpenRouter 免费公开 API（Host 代理，无 API Key）；**Refresh online** 可立即手动同步
 4. **Manage prices** 打开编辑器；单价按每 1M tokens、四种 bucket + 币种编辑，未修改的行继续使用默认价；每页 6 个模型，避免长列表撑开模态框
 5. **Clear overrides** 清除本地覆盖，恢复内置/在线价格
 
@@ -220,7 +221,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
   - `deepseek-v4-pro` 高峰：cache hit $0.044 / cache miss $1.32 / output $3.96（每 1M）
 - 其他模型：<https://openrouter.ai/api/v1/models>（免费、无鉴权）
 
-费用只是估算，不是 provider 账单；OpenCode Go 等订阅制 provider 的实际扣费可能与列表价不同。内置 DeepSeek 使用高峰价，非高峰实际约为一半。自动同步间隔由用户在费用页选择，默认 6 小时，可选关闭或 5 分钟到 24 小时；页面打开约 3 秒后首检。也可点击 **Refresh online** 立即同步。
+费用只是估算，不是 provider 账单；OpenCode Go 等订阅制 provider 的实际扣费可能与列表价不同。内置 DeepSeek 使用高峰价，非高峰实际约为一半。自动同步间隔由用户在顶部 topbar 选择，默认 6 小时，可选关闭或 5 分钟到 24 小时；页面打开约 3 秒后首检。也可点击 **Refresh online** 立即同步。
 
 ### 导出
 
@@ -306,7 +307,7 @@ scripts/
 - Client 用 esbuild 打成单个 CommonJS bundle，再包装为 DSH 的 `window.__ModuleLoader__.load({ id, factory(require) })`；
 - `react` 标记为 external，由宿主模块表注入，避免重复 React；
 - 图表用原生 SVG + React，不引入 ECharts/Chart.js；
-- 无数据库、无外部服务依赖；默认离线。在线价目按用户在费用页选择的间隔自动同步（默认 6 小时；首检约 3 秒后；也可关闭），Host 只请求固定的 OpenRouter 公共价目 URL；页面本身仍只访问同源 `/dsh-token-dashboard/*`。
+- 无数据库、无外部服务依赖；默认离线。在线价目按用户在顶部 topbar 选择的间隔自动同步（默认 6 小时；首检约 3 秒后；也可关闭），Host 只请求固定的 OpenRouter 公共价目 URL；页面本身仍只访问同源 `/dsh-token-dashboard/*`。
 
 ### 前端组件化与框架选择
 

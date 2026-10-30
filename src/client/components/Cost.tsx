@@ -6,8 +6,6 @@ import type { ReactElement } from 'react'
 import { Button, EmptyState } from './common.js'
 import { ChartIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
 import { Section } from './ui/Section.js'
-import { Select } from './ui/Select.js'
-import { SYNC_INTERVALS, type SyncInterval } from '../sync.js'
 import { DataTable } from './ui/DataTable.js'
 import type { DataColumn } from './ui/DataTable.js'
 import type { T } from '../lib.js'
@@ -36,8 +34,6 @@ export interface CostProps {
   priceError: boolean
   onRefreshPrices: () => void
   onConfigure: () => void
-  syncInterval?: SyncInterval | undefined
-  onSyncIntervalChange?: ((value: SyncInterval) => void) | undefined
   autoSync?: boolean | undefined
 }
 
@@ -114,8 +110,6 @@ export function CostPage(props: CostProps): ReactElement {
     priceError,
     onRefreshPrices,
     onConfigure,
-    syncInterval,
-    onSyncIntervalChange,
     autoSync,
   } = props
   const estimate = estimateCost([...models], pricing)
@@ -137,19 +131,6 @@ export function CostPage(props: CostProps): ReactElement {
           h('div', { className: 'tdb-cost-actions tdb-cost-summary-actions' },
             h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel),
             h(Button, { onClick: onConfigure }, t('cost.manage')))),
-        syncInterval !== undefined && onSyncIntervalChange !== undefined
-          ? h('div', { className: 'tdb-cost-sync-row' },
-            h('div', { className: 'tdb-cost-sync-copy' },
-              h('div', { className: 'tdb-cost-sync-title' }, t('sync.label')),
-              h('div', { className: 'tdb-cost-sync-hint' }, t('sync.hint'))),
-            h(Select, {
-              value: syncInterval,
-              options: SYNC_INTERVALS.map(value => ({ value, label: t(`sync.${value}`) })),
-              onChange: value => onSyncIntervalChange(value as SyncInterval),
-              ariaLabel: t('sync.label'),
-              className: 'tdb-sync-select',
-            }))
-          : null,
         priceError ? h('div', { className: 'tdb-error-text', style: { marginTop: '6px' } }, t('cost.refreshError')) : null,
         h(CostTable, { rows: estimate.rows, t, intl })))
 }

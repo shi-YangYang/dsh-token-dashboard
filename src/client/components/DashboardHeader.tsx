@@ -5,9 +5,11 @@ import type { ReactElement } from 'react'
 
 import { Button } from './common.js'
 import { ExportMenu } from './ExportMenu.js'
+import { Select } from './ui/Select.js'
 import { RefreshIcon } from '../icons.js'
 import type { T } from '../lib.js'
 import type { Language } from '../language.js'
+import { SYNC_INTERVALS, type SyncInterval } from '../sync.js'
 import type { StatsPayload } from '../../shared/types.js'
 
 export interface DashboardHeaderProps {
@@ -18,6 +20,8 @@ export interface DashboardHeaderProps {
   showExport: boolean
   onRefresh: () => void
   onChangeLanguage: (language: Language) => void
+  syncInterval: SyncInterval
+  onSyncIntervalChange: (value: SyncInterval) => void
 }
 
 export function DashboardHeader({
@@ -28,6 +32,8 @@ export function DashboardHeader({
   showExport,
   onRefresh,
   onChangeLanguage,
+  syncInterval,
+  onSyncIntervalChange,
 }: DashboardHeaderProps): ReactElement {
   return h('header', { className: 'tdb-head' },
     h('h1', { className: 'tdb-title' }, t('panel.title')),
@@ -45,6 +51,15 @@ export function DashboardHeader({
           'aria-pressed': language === 'en',
           onClick: () => onChangeLanguage('en'),
         }, 'EN')),
+      h('div', { className: 'tdb-sync-top' },
+        h('span', { className: 'tdb-sync-top-label' }, t('sync.label')),
+        h(Select, {
+          value: syncInterval,
+          options: SYNC_INTERVALS.map(value => ({ value, label: t(`sync.${value}`) })),
+          onChange: value => onSyncIntervalChange(value as SyncInterval),
+          ariaLabel: t('sync.label'),
+          className: 'tdb-sync-top-select',
+        })),
       h(Button, {
         variant: 'ghost',
         iconOnly: true,
