@@ -44,6 +44,7 @@ export interface ChartProps {
 interface Hover {
   index: number
   x: number
+  y: number
 }
 
 interface Scale {
@@ -77,14 +78,15 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
 
   const onMove = (event: ReactMouseEvent<SVGSVGElement>): void => {
     const box = event.currentTarget.getBoundingClientRect()
-    if (box.width === 0) return
+    if (box.width === 0 || box.height === 0) return
     const x = ((event.clientX - box.left) / box.width) * width
+    const y = ((event.clientY - box.top) / box.height) * height
     const index = Math.floor((x - LEFT) / band)
     if (index < 0 || index >= buckets.length) {
       setHover(null)
       return
     }
-    setHover({ index, x: centerOf(index) })
+    setHover({ index, x: centerOf(index), y })
   }
 
   const hovered = hover === null ? undefined : buckets[hover.index]
@@ -149,6 +151,7 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null ? null : h(Tooltip, {
       x: tooltipX(hover.x, width),
+      y: tooltipY(hover.y, height),
       title: hovered === undefined ? '' : `${labelOf(hovered)} · ${formatCompact(totalOf(hovered), intl)}`,
       rows: hovered === undefined ? [] : [
         { label: t('legend.input'), value: formatCompact(hovered.uncachedInputTokens, intl), color: 'var(--tdb-cat-input)' },
@@ -187,11 +190,12 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
 
   const onMove = (event: ReactMouseEvent<SVGSVGElement>): void => {
     const box = event.currentTarget.getBoundingClientRect()
-    if (box.width === 0) return
+    if (box.width === 0 || box.height === 0) return
     const x = ((event.clientX - box.left) / box.width) * width
+    const y = ((event.clientY - box.top) / box.height) * height
     const index = Math.floor((x - LEFT) / band)
     if (index < 0 || index >= buckets.length) return setHover(null)
-    setHover({ index, x: LEFT + band * index + band / 2 })
+    setHover({ index, x: LEFT + band * index + band / 2, y })
   }
 
   const hovered = hover === null ? undefined : buckets[hover.index]
@@ -240,10 +244,13 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null || hovered === undefined ? null : h(Tooltip, {
       x: tooltipX(hover.x, width),
+      y: tooltipY(hover.y, height),
       title: labelOf(hovered),
       rows: [
         { label: t('legend.input'), value: formatCompact(hovered.uncachedInputTokens, intl), color: 'var(--tdb-cat-input)' },
         { label: t('legend.output'), value: formatCompact(hovered.outputTokens, intl), color: 'var(--tdb-cat-output)' },
+        { label: t('legend.total'), value: formatCompact(hovered.uncachedInputTokens + hovered.outputTokens, intl), color: undefined },
+        { label: t('sessions.requests'), value: String(hovered.requests), color: undefined },
       ],
     }),
     empty ? h('div', { className: 'tdb-chart-empty' }, t('trend.emptyIo')) : null))
@@ -275,11 +282,12 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
 
   const onMove = (event: ReactMouseEvent<SVGSVGElement>): void => {
     const box = event.currentTarget.getBoundingClientRect()
-    if (box.width === 0) return
+    if (box.width === 0 || box.height === 0) return
     const x = ((event.clientX - box.left) / box.width) * width
+    const y = ((event.clientY - box.top) / box.height) * height
     const index = Math.floor((x - LEFT) / band)
     if (index < 0 || index >= buckets.length) return setHover(null)
-    setHover({ index, x: LEFT + band * index + band / 2 })
+    setHover({ index, x: LEFT + band * index + band / 2, y })
   }
 
   const hitPoints = buckets.map((bucket, index) => {
@@ -370,6 +378,7 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
     ...xLabels(buckets, band, width, bottom, labelOf),
     hover === null || hovered === undefined ? null : h(Tooltip, {
       x: tooltipX(hover.x, width),
+      y: tooltipY(hover.y, height),
       title: labelOf(hovered),
       rows: [
         { label: t('legend.cacheRead'), value: formatCompact(hovered.cacheReadTokens, intl), color: 'var(--tdb-cat-cache-read)' },
@@ -382,12 +391,13 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
 
 interface TooltipProps {
   x: number
+  y: number
   title: string
   rows: Array<{ label: string; value: string; color?: string | undefined }>
 }
 
-function Tooltip({ x, title, rows }: TooltipProps): ReactElement {
-  return h('div', { className: 'tdb-tooltip', style: { left: x, top: 0 } },
+function Tooltip({ x, y, title, rows }: TooltipProps): ReactElement {
+  return h('div', { className: 'tdb-tooltip', style: { left: x, top: y } },
     h('div', { className: 'tdb-tooltip-title' }, title),
     rows.map(row => h('div', { key: row.label, className: 'tdb-tooltip-row' },
       h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 5 } },
@@ -482,6 +492,11 @@ function visibleHeight(value: number, toY: (value: number) => number, bottom: nu
 function tooltipX(x: number, width: number): number {
   const edge = Math.min(115, width / 2)
   return clamp(x, edge, width - edge)
+}
+
+function tooltipY(y: number, height: number): number {
+  const edge = Math.max(8, height - 120)
+  return clamp(y + 12, 8, edge)
 }
 
 function topRoundedPath(x: number, y: number, width: number, height: number, radius: number): string {

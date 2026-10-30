@@ -50,6 +50,7 @@ export const en: LocaleDict = {
   'legend.cacheRead': 'Cache read',
   'legend.cacheWrite': 'Cache write',
   'legend.hitRate': 'Hit rate',
+  'legend.total': 'Total',
 
   'models.title': 'Models',
   'models.model': 'Model',
@@ -179,6 +180,7 @@ export const zh: LocaleDict = {
   'legend.cacheRead': '缓存读',
   'legend.cacheWrite': '缓存写',
   'legend.hitRate': '命中率',
+  'legend.total': '合计',
 
   'models.title': '模型',
   'models.model': '模型',
