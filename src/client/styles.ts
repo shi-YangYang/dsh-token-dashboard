@@ -137,6 +137,19 @@ export const CSS = `
 .tdb-pagetab:hover { color: var(--tdb-ink); }
 .tdb-pagetab[aria-selected="true"] { color: var(--tdb-ink); border-bottom-color: var(--tdb-brand); font-weight: 600; }
 .tdb-page { min-width: 0; }
+.tdb-surface--pages {
+  display: flex;
+  flex-direction: column;
+  height: clamp(640px, calc(100vh - 170px), 920px);
+}
+.tdb-surface--pages .tdb-pagetabs { flex: 0 0 auto; }
+.tdb-surface--pages .tdb-page {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
 .tdb-cost-summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .tdb-cost-summary-value { font-size: 28px; line-height: 1.15; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .tdb-cost-meta { font-size: 11px; color: var(--tdb-ink-2); overflow-wrap: anywhere; }

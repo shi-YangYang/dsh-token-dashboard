@@ -127,7 +127,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
         problem === null
           ? null
           : h(Notice, { tone: 'warn', icon: h(AlertIcon, { size: 15 }) }, problem),
-        h('div', { className: 'tdb-surface' },
+        h('div', { className: 'tdb-surface tdb-surface--pages' },
           h(PageTabs, {
             items: pageTabs,
             value: page,
@@ -135,6 +135,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
             ariaLabel: t('tabs.label'),
           }),
           h('div', {
+            key: page,
             id: 'tdb-page-panel',
             className: 'tdb-page',
             role: 'tabpanel',
