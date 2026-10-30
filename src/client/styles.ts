@@ -276,6 +276,21 @@ export const CSS = `
   margin: 8px 0 2px;
 }
 .tdb-date { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--tdb-ink-2); }
+.tdb-date-picker { display: inline-flex; min-width: 132px; max-width: 100%; }
+.tdb-date-trigger { display: inline-flex; align-items: center; gap: 6px; width: 100%; height: 32px; padding: 0 9px; border: 1px solid var(--tdb-line-strong); border-radius: 8px; background: var(--tdb-surface); color: var(--tdb-ink); font: inherit; font-size: 12px; text-align: left; cursor: pointer; white-space: nowrap; }
+.tdb-date-trigger svg { flex: 0 0 auto; color: var(--tdb-ink-2); }
+.tdb-date-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tdb-date-popover { position: fixed; z-index: 130; width: min(284px, calc(100vw - 16px)); padding: 8px; border: 1px solid var(--tdb-line-strong); border-radius: 10px; background: var(--tdb-surface); box-shadow: 0 10px 28px color-mix(in srgb, #000000 16%, transparent); }
+.tdb-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
+.tdb-cal-title { font-size: 12px; font-weight: 600; }
+.tdb-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.tdb-cal-weekday { padding: 4px 0; text-align: center; font-size: 10px; color: var(--tdb-ink-2); }
+.tdb-cal-day { height: 30px; border: 0; border-radius: 6px; background: none; color: var(--tdb-ink); font: inherit; font-size: 11px; cursor: pointer; }
+.tdb-cal-day:hover { background: var(--tdb-surface-2); }
+.tdb-cal-day[data-today="true"] { box-shadow: inset 0 0 0 1px var(--tdb-line-strong); }
+.tdb-cal-day[aria-pressed="true"] { background: var(--tdb-brand); color: var(--dsw-alias-bg-base, #ffffff); font-weight: 600; }
+.tdb-cal-day:disabled { opacity: .35; cursor: default; }
+.tdb-cal-blank { height: 30px; }
 
 .tdb-input, .tdb-select {
   height: 32px;
@@ -296,6 +311,7 @@ export const CSS = `
 
 .tdb-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .tdb-filters .tdb-select { max-width: 172px; }
+.tdb-filters .tdb-select-wrap { max-width: 172px; }
 
 .tdb-chart { position: relative; width: 100%; min-width: 0; }
 .tdb-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -614,6 +630,19 @@ export const CSS = `
 .tdb-pricing-head { font-size: 11px; color: var(--tdb-ink-2); font-weight: 500; padding-bottom: 2px; overflow-wrap: anywhere; }
 .tdb-pricing-model { min-width: 0; }
 .tdb-pricing-input, .tdb-pricing-currency { width: 100%; height: 30px; min-width: 0; }
+.tdb-pricing-currency .tdb-select-trigger { height: 30px; }
+.tdb-select-wrap { position: relative; min-width: 0; max-width: 100%; }
+.tdb-select-trigger { display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: left; cursor: pointer; }
+.tdb-select-trigger .tdb-select-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tdb-select-trigger svg { flex: 0 0 auto; color: var(--tdb-ink-2); }
+.tdb-select-menu { position: fixed; z-index: 130; padding: 4px; border: 1px solid var(--tdb-line-strong); border-radius: 9px; background: var(--tdb-surface); box-shadow: 0 10px 28px color-mix(in srgb, #000000 16%, transparent); overflow-y: auto; scrollbar-width: none; }
+.tdb-select-menu::-webkit-scrollbar { display: none; }
+.tdb-select-option { display: flex; align-items: center; gap: 8px; width: 100%; height: 30px; padding: 0 8px; border: 0; border-radius: 6px; background: none; color: var(--tdb-ink); font: inherit; font-size: 12px; text-align: left; cursor: pointer; white-space: nowrap; }
+.tdb-select-option:hover, .tdb-select-option[data-active="true"] { background: var(--tdb-surface-2); }
+.tdb-select-option[aria-selected="true"] { font-weight: 600; }
+.tdb-select-option:focus-visible, .tdb-cal-day:focus-visible { outline: 2px solid color-mix(in srgb, var(--tdb-brand) 50%, transparent); outline-offset: -2px; }
+.tdb-select-option > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tdb-select-option svg { flex: 0 0 auto; margin-left: auto; color: var(--tdb-brand); }
 .tdb-pricing-input.tdb-pricing-row-error { border-color: var(--tdb-error); }
 .tdb-error-text { color: var(--tdb-error); font-size: 11px; }
 .tdb-hint { font-size: 11px; color: var(--tdb-ink-2); }

@@ -3,7 +3,8 @@
 import { createElement as h, useMemo, useState } from 'react'
 import type { ChangeEvent, ReactElement } from 'react'
 
-import { Button, EmptyState, Select, Tag } from './common.js'
+import { Button, EmptyState, Tag } from './common.js'
+import { Select } from './ui/Select.js'
 import { ChevronLeftIcon, ChevronRightIcon, DatabaseIcon, SearchIcon } from '../icons.js'
 import { Section } from './ui/Section.js'
 import { DataTable } from './ui/DataTable.js'

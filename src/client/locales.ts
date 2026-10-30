@@ -21,6 +21,8 @@ export const en: LocaleDict = {
   'range.from': 'From',
   'range.to': 'To',
   'range.label': 'Time range',
+  'date.previous': 'Previous month',
+  'date.next': 'Next month',
 
   'kpi.total': 'Total tokens',
   'kpi.input': 'Input tokens',
@@ -151,6 +153,8 @@ export const zh: LocaleDict = {
   'range.from': '开始',
   'range.to': '结束',
   'range.label': '时间范围',
+  'date.previous': '上个月',
+  'date.next': '下个月',
 
   'kpi.total': '总 Token',
   'kpi.input': '输入 Token',

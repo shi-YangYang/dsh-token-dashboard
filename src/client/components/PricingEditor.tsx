@@ -4,6 +4,7 @@ import { Fragment, createElement as h, useEffect, useMemo, useState } from 'reac
 import type { ChangeEvent, ReactElement } from 'react'
 
 import { Button, Modal } from './common.js'
+import { Select } from './ui/Select.js'
 import { ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
 import type { T } from '../lib.js'
 import { SUGGESTED_CURRENCIES, samePrice, type ModelPrice, type PricingTable } from '../../shared/pricing.js'
@@ -125,8 +126,6 @@ export function PricingEditor({ open, models, pricing, defaults, t, onClose, onS
     closeLabel: t('common.close'),
     footer,
   },
-  h('datalist', { key: 'currencies', id: 'tdb-pricing-currencies' },
-    SUGGESTED_CURRENCIES.map(currency => h('option', { key: currency, value: currency }))),
   models.length === 0
     ? h('div', { className: 'tdb-empty' }, t('models.empty'))
     : h(Fragment, {},
@@ -147,14 +146,13 @@ export function PricingEditor({ open, models, pricing, defaults, t, onClose, onS
               h('div', { className: `tdb-model-name${model.model === '' ? ' tdb-model-unknown' : ''}` },
                 model.model === '' ? t('models.unknown') : model.model),
               h('div', { className: 'tdb-model-provider' }, model.provider === '' ? '—' : model.provider)),
-            h('input', {
+            h(Select, {
               key: `${model.key}:currency`,
-              className: 'tdb-input tdb-pricing-currency',
               value: row.currency,
-              list: 'tdb-pricing-currencies',
-              maxLength: 8,
-              'aria-label': `${t('cost.currency')} ${model.model}`,
-              onChange: (event: ChangeEvent<HTMLInputElement>) => update(model.key, 'currency', event.target.value),
+              options: currencyOptions(row.currency),
+              className: 'tdb-pricing-currency',
+              ariaLabel: `${t('cost.currency')} ${model.model}`,
+              onChange: (value: string) => update(model.key, 'currency', value),
             }),
             rateInput(model.key, 'input', row.input, t('cost.input'), invalid, value => update(model.key, 'input', value)),
             rateInput(model.key, 'output', row.output, t('cost.output'), invalid, value => update(model.key, 'output', value)),
@@ -184,6 +182,13 @@ export function PricingEditor({ open, models, pricing, defaults, t, onClose, onS
               onClick: () => setPage(Math.min(pages - 1, current + 1)),
             }, h(ChevronRightIcon, { size: 15 }))))
         : null))
+}
+
+function currencyOptions(current: string): Array<{ value: string; label: string }> {
+  const values = new Set<string>(SUGGESTED_CURRENCIES)
+  const normalized = current.trim().toUpperCase()
+  if (normalized !== '') values.add(normalized)
+  return [...values].map(value => ({ value, label: value }))
 }
 
 function rateInput(

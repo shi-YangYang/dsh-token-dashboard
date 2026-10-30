@@ -4,7 +4,7 @@ import { createElement as h, useMemo, useState } from 'react'
 import type { ReactElement } from 'react'
 
 import { CacheChart, GroupedBars } from './charts.js'
-import { TextInput } from './common.js'
+import { DatePicker } from './ui/DatePicker.js'
 import { Section } from './ui/Section.js'
 import { SegmentedTabs } from './ui/Tabs.js'
 import type { T } from '../lib.js'
@@ -71,18 +71,24 @@ export function Trends({ data, t, intl }: TrendsProps): ReactElement {
     ? h('div', { className: 'tdb-custom-range' },
       h('label', { className: 'tdb-date' },
         t('range.from'),
-        h(TextInput, {
-          type: 'date',
+        h(DatePicker, {
           value: range.from,
           ariaLabel: t('range.from'),
+          intl,
+          max: range.to,
+          previousLabel: t('date.previous'),
+          nextLabel: t('date.next'),
           onChange: (value: string) => setRange(current => ({ ...current, id: 'custom', from: value })),
         })),
       h('label', { className: 'tdb-date' },
         t('range.to'),
-        h(TextInput, {
-          type: 'date',
+        h(DatePicker, {
           value: range.to,
           ariaLabel: t('range.to'),
+          intl,
+          min: range.from,
+          previousLabel: t('date.previous'),
+          nextLabel: t('date.next'),
           onChange: (value: string) => setRange(current => ({ ...current, id: 'custom', to: value })),
         })))
     : null,

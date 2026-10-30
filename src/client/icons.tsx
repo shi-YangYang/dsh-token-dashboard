@@ -81,6 +81,15 @@ export function CloseIcon(props: IconProps): ReactElement {
   )
 }
 
+export function CalendarIcon({ size = 16, ...props }: IconProps): ReactElement {
+  return h('svg', {
+    width: size, height: size, viewBox: '0 0 16 16', fill: 'none',
+    'aria-hidden': 'true', ...props,
+  },
+  h('rect', { x: 2.25, y: 3.25, width: 11.5, height: 10.5, rx: 2, stroke: 'currentColor', strokeWidth: 1.2 }),
+  h('path', { d: 'M2.5 6.5h11M5.5 2.25v2.5M10.5 2.25v2.5', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round' }))
+}
+
 export function ChevronDownIcon(props: IconProps): ReactElement {
   return (
     <Stroke {...props}>

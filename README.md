@@ -186,7 +186,8 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 ### 概览 / Usage 图表
 
-- 标题右侧切换时间范围；Custom 时展开起止日期
+- 标题右侧切换时间范围；Custom 时使用自定义日历组件选择起止日期
+- 日期范围、项目/模型筛选、货币选择全部为项目内组件，不再使用原生 `select` / `date` / `datalist`
 - 图表上方左侧切换视图（Input / Output / Cache），右侧显示该范围的总量与请求数
 - `Today` 按小时展示今天 24 个小时桶；其余范围按自然日、空缺补零
 - 图表悬停可查看该桶四类 Token 与请求数
@@ -196,7 +197,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 ### 会话
 
 - 搜索框匹配标题、项目、模型与完整会话 ID
-- 项目与模型下拉筛选
+- 项目与模型使用自定义 listbox 选择器筛选，不再使用原生 `<select>`
 - 点击 **Last active** 或 **Total** 表头切换排序（再次点击反向）
 - 每行展示标题、项目、模型、最近活动与总量；项目也以次要文字显示在标题下方
 - 点击或键盘 `Enter` / `Space` 打开右侧详情抽屉
@@ -290,7 +291,7 @@ src/
         Stat.tsx
     locales.ts      # 中英文字典
     styles.ts       # 主题 Token CSS
-test/               # 81 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price 测试
+test/               # 83 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price / ui 测试
 scripts/
   build-client.mjs  # esbuild + __ModuleLoader__ 包装
   test.mjs          # tsc + node --test
@@ -318,11 +319,13 @@ scripts/
 因此当前版本继续使用 React，并把页面拆成两层组件：
 
 - **功能组件**：`DashboardHeader`、`KpiCards`、`Trends`、`ModelTable`、`SessionTable`、`SessionDetail`、`CostPanel`、`PricingEditor`、`ExportMenu`，各自只关心一个功能区。
-- **通用原语**：`ui/Section`（带标题/操作区的区块）、`ui/Tabs`（时间范围/图表视图）、`ui/DataTable`（泛型表格，模型/会话/费用三处复用）、`ui/Drawer`（详情抽屉）、`ui/Stat`（详情数字块）。
-- **状态 hooks**：`useStats`（ETag 轮询）、`usePricing`（localStorage 单价）、`useLocaleSnapshot`、`useNow`、`useModal`、`useElementWidth`。
+- **通用原语**：`ui/Section`（带标题/操作区的区块）、`ui/Tabs`（时间范围/图表视图）、`ui/DataTable`（泛型表格，模型/会话/费用三处复用）、`ui/Drawer`（详情抽屉）、`ui/Stat`（详情数字块）、`ui/Select`（listbox 选择器）、`ui/DatePicker`（日历弹层）。
+- **状态 hooks**：`useStats`（ETag 轮询）、`usePricing`（localStorage 单价）、`useLocaleSnapshot`、`useNow`、`useModal`（焦点陷阱/滚动锁）、`useElementWidth`、`useElementSize`。
 - `App.tsx` 只负责编排数据与组件，不再包含表格或弹窗的 DOM 结构。
 
 `DataTable<T>` 通过列定义复用表头、单元格、行点击/键盘激活和数字对齐；会话表的可排序表头也只是传入 `header` 与 `aria-sort` 的列，而不是再写一套 `<table>`。
+
+**为什么没有直接引入第三方 UI 库：** 这个插件运行在 DSH 的 React Slot 内，直接引入 Ant Design/MUI 等会带入第二套主题、CSS 和更大的 bundle；Radix/React Aria 的 portal 弹层也会和 Host 的模块表、SSR 测试增加耦合。当前用项目内 headless 组件实现 listbox、日历、Dialog 焦点管理，样式全部走 DSH Token，行为可测试，也没有重复 React 运行时。
 
 ## Token 统计口径
 
@@ -439,7 +442,7 @@ pnpm typecheck
 pnpm test
 ```
 
-当前 81 个测试全部通过，覆盖：
+当前 83 个测试全部通过，覆盖：
 
 - 四桶求和、流式替换、retry 重开、重复 seq、零用量请求、Unknown 归因
 - 分叉继承前缀不进入自身/全局总量
@@ -447,7 +450,7 @@ pnpm test
 - revision 缓存：首次全读、未变化复用、只重读变化会话、活跃增量、活跃→持久化、读取失败保留旧值、删除会话
 - 真实源适配器：persisted/live 合并、只读 handle、tail 读取、投影 lease 释放
 - HTTP：ETag/304、`refresh=1`、Host 鉴权短路、404/405、verify 匹配与不匹配
-- 范围筛选、模型合并、内置/在线价目解析与匹配、费用、模型/费用/价格编辑器分页、顶部 tab 页面、CSV 注入防护、JSON 脱敏
+- 范围筛选、模型合并、内置/在线价目解析与匹配、费用、模型/费用/价格编辑器分页、顶部 tab 页面、自定义选择器/日期弹层、CSV 注入防护、JSON 脱敏
 - 中英文切换：语言映射、持久化、订阅通知、默认回退
 - 组件 SSR 渲染 + jsdom 中完整挂载、fetch、渲染、手动刷新
 - 编译后的 Client bundle 实际加载、factory 返回、footer 入口与 main 面板渲染

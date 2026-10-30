@@ -3,7 +3,6 @@
 import { createElement as h, useEffect, useRef } from 'react'
 import type {
   ButtonHTMLAttributes,
-  ChangeEvent,
   MouseEvent as ReactMouseEvent,
   ReactElement,
   ReactNode,
@@ -45,61 +44,6 @@ export function Button({
     disabled: disabled === true || busy,
     'aria-busy': busy || undefined,
   }, children)
-}
-
-export interface SelectOption {
-  value: string
-  label: string
-}
-
-export interface SelectProps {
-  value: string
-  options: readonly SelectOption[]
-  onChange: (value: string) => void
-  ariaLabel?: string
-  className?: string
-}
-
-export function Select({ value, options, onChange, ariaLabel, className = '' }: SelectProps): ReactElement {
-  return h('select', {
-    className: `tdb-select ${className}`.trim(),
-    value,
-    'aria-label': ariaLabel,
-    onChange: (event: ChangeEvent<HTMLSelectElement>) => onChange(event.target.value),
-  }, options.map(option => h('option', { key: option.value, value: option.value }, option.label)))
-}
-
-export interface TextInputProps {
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
-  ariaLabel?: string
-  type?: 'text' | 'date'
-  className?: string
-  min?: string
-  max?: string
-}
-
-export function TextInput({
-  value,
-  onChange,
-  placeholder,
-  ariaLabel,
-  type = 'text',
-  className = '',
-  min,
-  max,
-}: TextInputProps): ReactElement {
-  return h('input', {
-    className: `tdb-input ${className}`.trim(),
-    type,
-    value,
-    placeholder,
-    'aria-label': ariaLabel,
-    min,
-    max,
-    onChange: (event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value),
-  })
 }
 
 export function Tag({ tone, children }: { tone?: 'live' | 'stale' | 'sub'; children?: ReactNode }): ReactElement {

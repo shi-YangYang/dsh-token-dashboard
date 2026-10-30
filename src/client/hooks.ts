@@ -182,7 +182,7 @@ export function useStats(): StatsController {
   return { data, loading, refreshing, error, pollError, lastUpdated, refresh }
 }
 
-/** Escape-to-close plus initial focus for a simple modal. */
+/** Escape-to-close, initial focus, focus trap, and body scroll lock. */
 export function useModal(open: boolean, onClose: () => void): RefObject<HTMLDivElement | null> {
   const ref = useRef<HTMLDivElement | null>(null)
   const close = useRef(onClose)
@@ -190,22 +190,48 @@ export function useModal(open: boolean, onClose: () => void): RefObject<HTMLDivE
 
   useEffect(() => {
     if (!open) return
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const focusable = (): HTMLElement[] => Array.from(
+      ref.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    ).filter(element => element.getClientRects().length > 0)
     const listener = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         event.preventDefault()
         close.current()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const items = focusable()
+      if (items.length === 0) {
+        event.preventDefault()
+        ref.current?.focus()
+        return
+      }
+      const first = items[0]
+      const last = items[items.length - 1]
+      const active = document.activeElement
+      if (event.shiftKey && (active === first || ref.current?.contains(active) !== true)) {
+        event.preventDefault()
+        last?.focus()
+      } else if (!event.shiftKey && (active === last || ref.current?.contains(active) !== true)) {
+        event.preventDefault()
+        first?.focus()
       }
     }
     document.addEventListener('keydown', listener)
     const timer = setTimeout(() => {
-      const focusable = ref.current?.querySelector<HTMLElement>('[data-autofocus]')
-      focusable?.focus()
+      const target = ref.current?.querySelector<HTMLElement>('[data-autofocus]')
+      ;(target ?? ref.current)?.focus()
     }, 0)
     return () => {
       clearTimeout(timer)
       document.removeEventListener('keydown', listener)
-      previous?.focus()
+      document.body.style.overflow = previousOverflow
+      previousFocus?.focus()
     }
   }, [open])
 
