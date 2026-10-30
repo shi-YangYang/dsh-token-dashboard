@@ -97,7 +97,7 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 ### 界面
 
 - 侧边栏左下角入口（Settings/个人信息上方）+ `main` 独立面板，不改动既有页面
-- 单一内容面板：四列 KPI + Usage + Models + Sessions + 折叠费用行，减少卡片与说明文字
+- 顶部页面切换：**概览 / 模型 / 会话 / 费用**，每页只呈现该功能，避免 KPI、图表和多张列表堆在一页
 - 使用 `--dsw-alias-*` 主题 Token，自动适配深色 / 浅色
 - 响应式布局：4/2/1 列 KPI、表格窄屏隐藏次要列、详情在窄屏占满宽度
 - 完整的加载中、空数据、错误、部分会话读取失败状态
@@ -157,6 +157,16 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 - 左侧是页面标题，右侧有 **中文 / EN** 切换、刷新与导出
 - 刷新图标在请求期间旋转；没有额外的说明文字或更新时间行
 
+### 页面切换与分页
+
+- 顶部 tab：**概览 / 模型 / 会话 / 费用**；只渲染当前页面。
+- 概览：KPI + Usage 图表。
+- 模型：模型分布表，10 个/页。
+- 会话：搜索、筛选、排序与详情，20 个/页。
+- 费用：预估总额、逐模型费用表（8 个/页）、在线刷新与单价管理。
+- 价格编辑器：6 个模型/页。
+- 所有分页都带上一页/下一页与页码，窄屏自动换行。
+
 ### 中英文切换
 
 - Header 右侧的 `中文 / EN` 是两段式切换，明确显示当前语言。
@@ -165,13 +175,13 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 - 从未选择过时，默认跟随 DSH 当前语言（`zh*` → 中文，其余 → English）。
 - 只影响本插件；DSH 其他区域与插件管理器元数据仍由宿主 locale 控制。
 
-### KPI
+### 概览 / KPI
 
 - 四个数值：Total / Input / Output / Cache tokens
 - 每个数值只有一行补充信息：请求数、占比或缓存命中率
 - 鼠标悬停数值可查看精确整数
 
-### Usage 图表
+### 概览 / Usage 图表
 
 - 标题右侧切换时间范围；Custom 时展开起止日期
 - 图表上方左侧切换视图（Tokens / Input / Output / Cache），右侧显示该范围的总量与请求数
@@ -180,7 +190,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 - 柱体使用 5 段整齐纵轴刻度、顶部圆角与整列悬停高亮；Input/Output、Cache 各自有独立空态文案
 - 缓存命中率在无 prompt 的空档断开，不再把空白天错误画成 0%
 
-### 会话表
+### 会话
 
 - 搜索框匹配标题、项目、模型与完整会话 ID
 - 项目与模型下拉筛选
@@ -191,8 +201,8 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 ### 费用估算
 
-1. 页面底部一行 **Estimated cost**；已知模型会直接用内置价目计算，未知模型才需要 **Set prices**
-2. 点击该行展开逐模型估算；展开区显示价目来源（内置 / OpenRouter）与刷新按钮
+1. 费用页顶部显示 **预估总额**；已知模型会直接用内置价目计算，未知模型才需要 **Set prices**
+2. 下方是逐模型费用表，8 个/页；表格上方显示价目来源（内置 / OpenRouter）与刷新按钮
 3. **Refresh online** 从 OpenRouter 免费公开 API 拉取当前列表价（显式点击才联网；Host 代理，无 API Key）
 4. **Manage prices** 打开编辑器；单价按每 1M tokens、四种 bucket + 币种编辑，未修改的行继续使用默认价；每页 6 个模型，避免长列表撑开模态框
 5. **Clear overrides** 清除本地覆盖，恢复内置/在线价格
@@ -260,6 +270,7 @@ src/
     components/
       Cards.tsx     # KPI
       Trends.tsx    # 范围 + 图表视图
+      PageTabs.tsx  # 顶部页面 tab
       Models.tsx    # 模型表
       Sessions.tsx  # 会话表
       SessionDetail.tsx
@@ -276,7 +287,7 @@ src/
         Stat.tsx
     locales.ts      # 中英文字典
     styles.ts       # 主题 Token CSS
-test/               # 79 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price 测试
+test/               # 81 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price 测试
 scripts/
   build-client.mjs  # esbuild + __ModuleLoader__ 包装
   test.mjs          # tsc + node --test
@@ -425,7 +436,7 @@ pnpm typecheck
 pnpm test
 ```
 
-当前 79 个测试全部通过，覆盖：
+当前 81 个测试全部通过，覆盖：
 
 - 四桶求和、流式替换、retry 重开、重复 seq、零用量请求、Unknown 归因
 - 分叉继承前缀不进入自身/全局总量
@@ -433,7 +444,7 @@ pnpm test
 - revision 缓存：首次全读、未变化复用、只重读变化会话、活跃增量、活跃→持久化、读取失败保留旧值、删除会话
 - 真实源适配器：persisted/live 合并、只读 handle、tail 读取、投影 lease 释放
 - HTTP：ETag/304、`refresh=1`、Host 鉴权短路、404/405、verify 匹配与不匹配
-- 范围筛选、模型合并、内置/在线价目解析与匹配、费用、价格编辑器分页、CSV 注入防护、JSON 脱敏
+- 范围筛选、模型合并、内置/在线价目解析与匹配、费用、模型/费用/价格编辑器分页、顶部 tab 页面、CSV 注入防护、JSON 脱敏
 - 中英文切换：语言映射、持久化、订阅通知、默认回退
 - 组件 SSR 渲染 + jsdom 中完整挂载、fetch、渲染、手动刷新
 - 编译后的 Client bundle 实际加载、factory 返回、footer 入口与 main 面板渲染

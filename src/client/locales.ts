@@ -30,6 +30,11 @@ export const en: LocaleDict = {
   'kpi.share': '{share} of total',
   'kpi.hitRate': '{rate} hit rate',
 
+  'tabs.label': 'Pages',
+  'tabs.overview': 'Overview',
+  'tabs.models': 'Models',
+  'tabs.sessions': 'Sessions',
+  'tabs.costs': 'Costs',
   'trend.title': 'Usage',
   'trend.views': 'Chart view',
   'trend.tokens': 'Tokens',
@@ -154,6 +159,11 @@ export const zh: LocaleDict = {
   'kpi.share': '占总量 {share}',
   'kpi.hitRate': '命中率 {rate}',
 
+  'tabs.label': '页面',
+  'tabs.overview': '概览',
+  'tabs.models': '模型',
+  'tabs.sessions': '会话',
+  'tabs.costs': '费用',
   'trend.title': '用量',
   'trend.views': '图表视图',
   'trend.tokens': 'Token',

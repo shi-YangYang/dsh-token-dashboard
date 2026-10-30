@@ -1,10 +1,10 @@
 /** Lifetime model distribution table. */
 
-import { createElement as h } from 'react'
+import { createElement as h, useState } from 'react'
 import type { ReactElement } from 'react'
 
-import { EmptyState, ShareBar } from './common.js'
-import { ChartIcon } from '../icons.js'
+import { Button, EmptyState, ShareBar } from './common.js'
+import { ChartIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
 import { Section } from './ui/Section.js'
 import { DataTable } from './ui/DataTable.js'
 import type { DataColumn } from './ui/DataTable.js'
@@ -20,7 +20,13 @@ export interface ModelsProps {
   intl: string | undefined
 }
 
+const PAGE_SIZE = 10
+
 export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElement {
+  const [page, setPage] = useState(0)
+  const pages = Math.max(1, Math.ceil(models.length / PAGE_SIZE))
+  const current = Math.min(page, pages - 1)
+  const visible = models.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
   const columns: Array<DataColumn<ModelUsage>> = [
     {
       key: 'model',
@@ -81,10 +87,30 @@ export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElemen
   return h(Section, { title: t('models.title'), ariaLabel: t('models.title') },
     models.length === 0
       ? h(EmptyState, { icon: h(ChartIcon, { size: 20 }), title: t('models.empty') })
-      : h(DataTable<ModelUsage>, {
-        rows: models,
-        columns,
-        rowKey: model => model.key,
-        ariaLabel: t('models.title'),
-      }))
+      : h('div', {},
+        h(DataTable<ModelUsage>, {
+          rows: visible,
+          columns,
+          rowKey: model => model.key,
+          ariaLabel: t('models.title'),
+        }),
+        pages > 1
+          ? h('div', { className: 'tdb-pager' },
+            h('span', {}, t('sessions.page', { page: current + 1, pages })),
+            h('div', { className: 'tdb-pager-actions' },
+              h(Button, {
+                variant: 'ghost',
+                iconOnly: true,
+                disabled: current <= 0,
+                'aria-label': t('sessions.previous'),
+                onClick: () => setPage(Math.max(0, current - 1)),
+              }, h(ChevronLeftIcon, { size: 15 })),
+              h(Button, {
+                variant: 'ghost',
+                iconOnly: true,
+                disabled: current >= pages - 1,
+                'aria-label': t('sessions.next'),
+                onClick: () => setPage(Math.min(pages - 1, current + 1)),
+              }, h(ChevronRightIcon, { size: 15 }))))
+          : null))
 }

@@ -1,16 +1,18 @@
 /** The dashboard page: one surface, four numbers, one chart, two tables. */
 
-import { createElement as h, useMemo, useState } from 'react'
+import { Fragment, createElement as h, useMemo, useState } from 'react'
 import type { ReactElement } from 'react'
 
 import { KpiCards } from './components/Cards.js'
-import { CostPanel } from './components/Cost.js'
+import { CostPage } from './components/Cost.js'
 import { DashboardHeader } from './components/DashboardHeader.js'
 import { ModelTable } from './components/Models.js'
 import { PricingEditor } from './components/PricingEditor.js'
 import { SessionDetail } from './components/SessionDetail.js'
 import { SessionTable } from './components/Sessions.js'
 import { Trends } from './components/Trends.js'
+import { PageTabs } from './components/ui/PageTabs.js'
+import type { PageId } from './components/ui/PageTabs.js'
 import { Button, EmptyState, Notice, SkeletonDashboard } from './components/common.js'
 import { AlertIcon, DatabaseIcon } from './icons.js'
 import { useNow, useStats } from './hooks.js'
@@ -52,10 +54,22 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [pricingOpen, setPricingOpen] = useState(false)
+  const [page, setPage] = useState<PageId>('overview')
 
   const selected = data === null || selectedId === null
     ? null
     : data.sessionRows.find(row => row.id === selectedId) ?? null
+
+  const pageTabs = [
+    { id: 'overview' as const, label: t('tabs.overview') },
+    { id: 'models' as const, label: t('tabs.models') },
+    { id: 'sessions' as const, label: t('tabs.sessions') },
+    { id: 'costs' as const, label: t('tabs.costs') },
+  ]
+  const changePage = (next: PageId): void => {
+    setPage(next)
+    if (next !== 'sessions') setSelectedId(null)
+  }
 
   const header = (showExport: boolean): ReactElement => h(DashboardHeader, {
     t,
@@ -114,31 +128,45 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
           ? null
           : h(Notice, { tone: 'warn', icon: h(AlertIcon, { size: 15 }) }, problem),
         h('div', { className: 'tdb-surface' },
-          h(KpiCards, { data, t, intl }),
-          h('div', { className: 'tdb-rule' }),
-          h(Trends, { data, t, intl }),
-          h('div', { className: 'tdb-rule' }),
-          h(ModelTable, { models: data.models, total: totalTokens(data.totals), t, intl }),
-          h('div', { className: 'tdb-rule' }),
-          h(SessionTable, {
-            rows: data.sessionRows,
-            t,
-            intl,
-            now,
-            onSelect: session => setSelectedId(session.id),
+          h(PageTabs, {
+            items: pageTabs,
+            value: page,
+            onChange: changePage,
+            ariaLabel: t('tabs.label'),
           }),
-          h(CostPanel, {
-            models: data.models,
-            pricing: effectivePricing,
-            t,
-            intl,
-            onlineAt,
-            onlineSource,
-            refreshingPrices: refreshingOnline,
-            priceError: onlineError,
-            onRefreshPrices: () => { void refreshOnline(data.models) },
-            onConfigure: () => setPricingOpen(true),
-          })))),
+          h('div', {
+            id: 'tdb-page-panel',
+            className: 'tdb-page',
+            role: 'tabpanel',
+            'aria-labelledby': `tdb-tab-${page}`,
+          },
+          page === 'overview'
+            ? h(Fragment, {},
+              h(KpiCards, { data, t, intl }),
+              h('div', { className: 'tdb-rule' }),
+              h(Trends, { data, t, intl }))
+            : page === 'models'
+              ? h(ModelTable, { models: data.models, total: totalTokens(data.totals), t, intl })
+              : page === 'sessions'
+                ? h(SessionTable, {
+                  rows: data.sessionRows,
+                  t,
+                  intl,
+                  now,
+                  onSelect: session => setSelectedId(session.id),
+                })
+                : h(CostPage, {
+                  models: data.models,
+                  pricing: effectivePricing,
+                  t,
+                  intl,
+                  onlineAt,
+                  onlineSource,
+                  refreshingPrices: refreshingOnline,
+                  priceError: onlineError,
+                  onRefreshPrices: () => { void refreshOnline(data.models) },
+                  onConfigure: () => setPricingOpen(true),
+                }))))),
     h(SessionDetail, {
       session: selected,
       t,

@@ -131,6 +131,15 @@ export const CSS = `
   min-width: 0;
 }
 .tdb-rule { height: 1px; background: var(--tdb-line); margin: 0 22px; }
+.tdb-pagetabs { display: flex; align-items: stretch; gap: 2px; padding: 4px 22px 0; border-bottom: 1px solid var(--tdb-line); overflow-x: auto; scrollbar-width: none; }
+.tdb-pagetabs::-webkit-scrollbar { display: none; }
+.tdb-pagetab { flex: 0 0 auto; margin-bottom: -1px; padding: 10px 10px 9px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--tdb-ink-2); font: inherit; font-size: 12px; font-weight: 500; line-height: 1.2; white-space: nowrap; cursor: pointer; }
+.tdb-pagetab:hover { color: var(--tdb-ink); }
+.tdb-pagetab[aria-selected="true"] { color: var(--tdb-ink); border-bottom-color: var(--tdb-brand); font-weight: 600; }
+.tdb-page { min-width: 0; }
+.tdb-cost-summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tdb-cost-summary-value { font-size: 28px; line-height: 1.15; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tdb-cost-meta { font-size: 11px; color: var(--tdb-ink-2); overflow-wrap: anywhere; }
 
 .tdb-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .tdb-kpi { padding: 20px 22px; min-width: 0; }
@@ -588,6 +597,8 @@ export const CSS = `
   .tdb-table th, .tdb-table td { padding-left: 8px; padding-right: 8px; }
   .tdb-table .tdb-model-name, .tdb-table .tdb-model-provider { max-width: 120px; }
   .tdb-session-cell { min-width: 140px; }
+  .tdb-pagetabs { padding: 4px 14px 0; }
+  .tdb-pagetab { padding: 9px 8px 8px; }
   .tdb-modal-backdrop { padding: 12px; }
   .tdb-modal-head { padding: 16px 14px 12px; }
   .tdb-modal-body { padding: 14px; }

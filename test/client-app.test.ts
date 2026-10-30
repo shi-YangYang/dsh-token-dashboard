@@ -129,17 +129,26 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
     await new Promise(resolve => setTimeout(resolve, 10))
   })
 
+  const tab = (label: string): HTMLButtonElement | undefined => Array.from(
+    container.querySelectorAll<HTMLButtonElement>('.tdb-pagetab'),
+  ).find(button => button.textContent === label)
+  const switchTab = async (label: string): Promise<void> => {
+    const button = tab(label)
+    assert.ok(button, `${label} tab is present`)
+    await act(async () => {
+      button.click()
+    })
+  }
+
   assert.equal(calls.length > 0, true)
   assert.match(calls[0] ?? '', /dsh-token-dashboard\/stats/)
   assert.match(container.textContent ?? '', /Total tokens/)
-  assert.match(container.textContent ?? '', /deepseek-v4\.1-flash/)
-  assert.match(container.textContent ?? '', /Fix the parser/)
-  assert.match(container.textContent ?? '', /Estimated cost/)
-  assert.match(container.textContent ?? '', /\$0\.001032/)
-  assert.equal(container.textContent?.includes('No prices set'), false)
+  assert.doesNotMatch(container.textContent ?? '', /Fix the parser/)
+  assert.doesNotMatch(container.textContent ?? '', /Estimated cost/)
   assert.equal(container.querySelectorAll('.tdb-surface').length, 1)
+  assert.equal(container.querySelectorAll('.tdb-pagetab').length, 4)
   assert.equal(container.querySelectorAll('.tdb-kpi').length, 4)
-  assert.equal(container.querySelectorAll('.tdb-section-title').length, 3)
+  assert.equal(container.querySelectorAll('.tdb-section-title').length, 1)
   assert.equal(container.textContent?.includes('Lifetime'), false)
   assert.equal(container.textContent?.includes('Read-only'), false)
 
@@ -178,6 +187,21 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   })
   assert.equal(ioView.getAttribute('aria-pressed'), 'true')
 
+  const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Refresh"]')
+  assert.ok(refresh, 'refresh button is present')
+  await act(async () => {
+    refresh.click()
+  })
+  assert.equal(calls.some(url => url.includes('refresh=1')), true)
+
+  await switchTab('Models')
+  assert.match(container.textContent ?? '', /deepseek-v4\.1-flash/)
+  assert.doesNotMatch(container.textContent ?? '', /Fix the parser/)
+  assert.equal(container.querySelectorAll('.tdb-section-title').length, 1)
+
+  await switchTab('Sessions')
+  assert.match(container.textContent ?? '', /Fix the parser/)
+
   const totalSort = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-sort-btn'))
     .find(button => button.textContent?.includes('Total'))
   assert.ok(totalSort, 'total sort button is present')
@@ -191,13 +215,6 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
     totalSort.click()
   })
   assert.equal(totalColumn.getAttribute('aria-sort'), 'ascending')
-
-  const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Refresh"]')
-  assert.ok(refresh, 'refresh button is present')
-  await act(async () => {
-    refresh.click()
-  })
-  assert.equal(calls.some(url => url.includes('refresh=1')), true)
 
   const row = container.querySelector<HTMLElement>('.tdb-row')
   assert.ok(row, 'session row is present')
@@ -213,11 +230,12 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   })
   assert.equal(container.querySelector('.tdb-drawer'), null)
 
-  const costRow = container.querySelector<HTMLButtonElement>('.tdb-cost-row')
-  assert.ok(costRow, 'cost row is present')
-  await act(async () => {
-    costRow.click()
-  })
+  await switchTab('Costs')
+  assert.match(container.textContent ?? '', /Estimated cost/)
+  assert.match(container.textContent ?? '', /\$0\.001032/)
+  assert.match(container.textContent ?? '', /Built-in/)
+  assert.equal(container.textContent?.includes('No prices set'), false)
+
   const refreshPrices = Array.from(container.querySelectorAll('button'))
     .find(button => button.textContent === 'Refresh online')
   assert.ok(refreshPrices, 'online refresh button is present')

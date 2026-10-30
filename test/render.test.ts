@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { Dashboard } from '../src/client/App.js'
 import { KpiCards } from '../src/client/components/Cards.js'
-import { CostPanel } from '../src/client/components/Cost.js'
+import { CostPage, CostPanel } from '../src/client/components/Cost.js'
 import { ModelTable } from '../src/client/components/Models.js'
 import { PricingEditor } from '../src/client/components/PricingEditor.js'
 import { SessionDetail } from '../src/client/components/SessionDetail.js'
@@ -222,6 +222,50 @@ test('the pricing editor renders one editable row per model', () => {
   assert.match(markup, /Manage prices/)
   assert.match(markup, /Rates per 1M tokens/)
   assert.match(markup, /deepseek-v4\.1-flash/)
+})
+
+test('the model table paginates a long model list', () => {
+  const many = Array.from({ length: 11 }, (_, index): ModelUsage => ({
+    ...model,
+    key: `p::m-${index}`,
+    model: `model-${index}`,
+  }))
+  const markup = renderToStaticMarkup(h(ModelTable, {
+    models: many,
+    total: many.reduce((sum, entry) => sum + entry.uncachedInputTokens + entry.cacheReadTokens + entry.cacheWriteTokens + entry.outputTokens, 0),
+    t,
+    intl,
+  }))
+  assert.match(markup, /1 \/ 2/)
+  assert.match(markup, /model-0/)
+  assert.doesNotMatch(markup, /model-10/)
+})
+
+test('the cost page paginates model rows', () => {
+  const many = Array.from({ length: 9 }, (_, index): ModelUsage => ({
+    ...model,
+    key: `p::cost-${index}`,
+    model: `cost-${index}`,
+  }))
+  const pricing = Object.fromEntries(many.map((entry, index) => [
+    entry.key,
+    { currency: 'USD', input: index + 1, output: 1, cacheRead: 0, cacheWrite: 0 },
+  ]))
+  const markup = renderToStaticMarkup(h(CostPage, {
+    models: many,
+    pricing,
+    t,
+    intl,
+    onlineAt: 0,
+    onlineSource: '',
+    refreshingPrices: false,
+    priceError: false,
+    onRefreshPrices: () => {},
+    onConfigure: () => {},
+  }))
+  assert.match(markup, /1 \/ 2/)
+  assert.match(markup, /cost-0/)
+  assert.doesNotMatch(markup, /cost-8/)
 })
 
 test('the pricing editor paginates a long model list', () => {
