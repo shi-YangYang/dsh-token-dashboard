@@ -13,7 +13,7 @@ import { formatDateTime, formatNumber, formatRelative } from '../../shared/forma
 import { totalTokens } from '../../shared/model.js'
 import type { SessionSummary } from '../../shared/types.js'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10
 
 type SortKey = 'last' | 'total'
 type SortDir = 'asc' | 'desc'

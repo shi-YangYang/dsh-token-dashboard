@@ -48,15 +48,17 @@ export const CSS = `
   max-width: 100%;
   min-width: 0;
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: calc(28px + var(--dsh-frame-top-clearance, 0px)) 0 48px;
 }
 .tdb-container {
   width: 100%;
   max-width: 1080px;
   min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
   margin: 0 auto;
   padding: 0 clamp(16px, 3vw, 32px);
   display: flex;
@@ -140,7 +142,8 @@ export const CSS = `
 .tdb-surface--pages {
   display: flex;
   flex-direction: column;
-  height: clamp(640px, calc(100vh - 170px), 920px);
+  flex: 1 1 auto;
+  min-height: 0;
 }
 .tdb-surface--pages .tdb-pagetabs { flex: 0 0 auto; }
 .tdb-surface--pages .tdb-page {
@@ -150,8 +153,9 @@ export const CSS = `
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
+  scrollbar-width: none;
 }
+.tdb-surface--pages .tdb-page::-webkit-scrollbar { display: none; }
 .tdb-surface--pages .tdb-page > .tdb-section {
   display: flex;
   flex-direction: column;
@@ -172,7 +176,9 @@ export const CSS = `
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-width: none;
 }
+.tdb-table-panel > .tdb-table-wrap::-webkit-scrollbar { display: none; }
 .tdb-table-panel .tdb-table thead th {
   position: sticky;
   top: 0;
