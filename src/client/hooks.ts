@@ -25,6 +25,36 @@ export function useElementWidth<T extends HTMLElement>(): [RefObject<T | null>, 
   return [ref, width]
 }
 
+export interface ElementSize {
+  width: number
+  height: number
+}
+
+/** Observe both dimensions of an element (used by the growable charts). */
+export function useElementSize<T extends HTMLElement>(): [RefObject<T | null>, ElementSize] {
+  const ref = useRef<T | null>(null)
+  const [size, setSize] = useState<ElementSize>({ width: 0, height: 0 })
+
+  useEffect(() => {
+    const node = ref.current
+    if (node === null || typeof ResizeObserver === 'undefined') return
+    const update = (): void => {
+      const rect = node.getBoundingClientRect()
+      setSize(current => (
+        current.width === rect.width && current.height === rect.height
+          ? current
+          : { width: rect.width, height: rect.height }
+      ))
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  return [ref, size]
+}
+
 /** Re-render periodically so relative timestamps stay current. */
 export function useNow(intervalMs = 30_000): number {
   const [now, setNow] = useState(() => Date.now())

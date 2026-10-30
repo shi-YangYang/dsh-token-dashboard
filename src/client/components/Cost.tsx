@@ -132,7 +132,7 @@ function CostTable({ rows, t, intl }: {
   const current = Math.min(page, pages - 1)
   const visible = rows.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
 
-  return h('div', {},
+  return h('div', { className: 'tdb-table-panel' },
     h(DataTable<ModelCostRow>, {
       rows: visible,
       columns: costColumns(t, intl),

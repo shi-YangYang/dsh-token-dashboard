@@ -153,7 +153,7 @@ export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): R
     ? h(EmptyState, { icon: h(DatabaseIcon, { size: 20 }), title: t('sessions.empty') })
     : filtered.length === 0
       ? h(EmptyState, { icon: h(SearchIcon, { size: 20 }), title: t('sessions.emptyFiltered') })
-      : h('div', {},
+      : h('div', { className: 'tdb-table-panel' },
         h(DataTable<SessionSummary>, {
           rows: visible,
           columns,

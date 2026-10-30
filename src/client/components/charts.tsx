@@ -6,12 +6,13 @@
 import { createElement as h, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, ReactElement } from 'react'
 
-import { useElementWidth } from '../hooks.js'
+import { useElementSize } from '../hooks.js'
 import type { T } from '../lib.js'
 import { clamp, formatCompact, formatDayLabel, formatPercent } from '../../shared/format.js'
 import type { UsageBucket } from '../../shared/types.js'
 
-const HEIGHT = 252
+const DEFAULT_HEIGHT = 252
+const MIN_HEIGHT = 220
 const TOP = 16
 const BOTTOM = 28
 const LEFT = 44
@@ -58,11 +59,12 @@ interface BarPart {
 
 /** Stacked daily/hourly consumption. */
 export function StackedBars({ buckets, granularity, t, intl }: ChartProps): ReactElement {
-  const [ref, measured] = useElementWidth<HTMLDivElement>()
-  const width = Math.max(1, Math.round(measured || 720))
+  const [ref, size] = useElementSize<HTMLDivElement>()
+  const width = Math.max(1, Math.round(size.width || 720))
+  const height = Math.max(MIN_HEIGHT, Math.round(size.height || DEFAULT_HEIGHT))
   const [hover, setHover] = useState<Hover | null>(null)
   const innerWidth = Math.max(20, width - LEFT - RIGHT)
-  const innerHeight = HEIGHT - TOP - BOTTOM
+  const innerHeight = height - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
   const barWidth = clamp(band * 0.62, 0.5, 42)
   const rawMax = buckets.reduce((maximum, bucket) => Math.max(maximum, totalOf(bucket)), 0)
@@ -93,8 +95,8 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
   return h('div', { className: 'tdb-chart', ref },
     h('svg', {
       width,
-      height: HEIGHT,
-      viewBox: `0 0 ${width} ${HEIGHT}`,
+      height,
+      viewBox: `0 0 ${width} ${height}`,
       role: 'img',
       'aria-label': t('trend.tokens'),
       onMouseMove: onMove,
@@ -161,11 +163,12 @@ export function StackedBars({ buckets, granularity, t, intl }: ChartProps): Reac
 
 /** Two bars per bucket: uncached input and output. */
 export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): ReactElement {
-  const [ref, measured] = useElementWidth<HTMLDivElement>()
-  const width = Math.max(1, Math.round(measured || 520))
+  const [ref, size] = useElementSize<HTMLDivElement>()
+  const width = Math.max(1, Math.round(size.width || 520))
+  const height = Math.max(MIN_HEIGHT, Math.round(size.height || DEFAULT_HEIGHT))
   const [hover, setHover] = useState<Hover | null>(null)
   const innerWidth = Math.max(20, width - LEFT - RIGHT)
-  const innerHeight = HEIGHT - TOP - BOTTOM
+  const innerHeight = height - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
   const available = Math.max(0.5, band * 0.86)
   const barWidth = Math.min(22, available * 0.42)
@@ -195,8 +198,8 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
   return h('div', { className: 'tdb-chart', ref },
     h('svg', {
       width,
-      height: HEIGHT,
-      viewBox: `0 0 ${width} ${HEIGHT}`,
+      height,
+      viewBox: `0 0 ${width} ${height}`,
       role: 'img',
       'aria-label': t('trend.io'),
       onMouseMove: onMove,
@@ -248,12 +251,13 @@ export function GroupedBars({ buckets, granularity, t, intl }: ChartProps): Reac
 
 /** Cache read/write bars plus the per-bucket hit rate line. */
 export function CacheChart({ buckets, granularity, t, intl }: ChartProps): ReactElement {
-  const [ref, measured] = useElementWidth<HTMLDivElement>()
-  const width = Math.max(1, Math.round(measured || 520))
+  const [ref, size] = useElementSize<HTMLDivElement>()
+  const width = Math.max(1, Math.round(size.width || 520))
+  const height = Math.max(MIN_HEIGHT, Math.round(size.height || DEFAULT_HEIGHT))
   const [hover, setHover] = useState<Hover | null>(null)
   const right = 42
   const innerWidth = Math.max(20, width - LEFT - right)
-  const innerHeight = HEIGHT - TOP - BOTTOM
+  const innerHeight = height - TOP - BOTTOM
   const band = innerWidth / Math.max(1, buckets.length)
   const barWidth = clamp(band * 0.5, 0.5, 26)
   const rawMax = buckets.reduce(
@@ -310,8 +314,8 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
   return h('div', { className: 'tdb-chart', ref },
     h('svg', {
       width,
-      height: HEIGHT,
-      viewBox: `0 0 ${width} ${HEIGHT}`,
+      height,
+      viewBox: `0 0 ${width} ${height}`,
       role: 'img',
       'aria-label': t('trend.cache'),
       onMouseMove: onMove,

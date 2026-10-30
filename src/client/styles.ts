@@ -144,12 +144,43 @@ export const CSS = `
 }
 .tdb-surface--pages .tdb-pagetabs { flex: 0 0 auto; }
 .tdb-surface--pages .tdb-page {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable;
 }
+.tdb-surface--pages .tdb-page > .tdb-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.tdb-surface--pages .tdb-page > .tdb-section > .tdb-chart {
+  flex: 1 1 auto;
+  min-height: 220px;
+}
+.tdb-table-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.tdb-table-panel > .tdb-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.tdb-table-panel .tdb-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--tdb-surface);
+  box-shadow: inset 0 -1px 0 var(--tdb-line);
+}
+.tdb-table-panel > .tdb-pager { flex: 0 0 auto; }
 .tdb-cost-summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .tdb-cost-summary-value { font-size: 28px; line-height: 1.15; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .tdb-cost-meta { font-size: 11px; color: var(--tdb-ink-2); overflow-wrap: anywhere; }
