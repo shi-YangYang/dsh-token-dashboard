@@ -92,7 +92,20 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
 
   const calls: string[] = []
   globals.fetch = (async (input: string | URL | Request) => {
-    calls.push(String(input))
+    const url = String(input)
+    calls.push(url)
+    if (url.includes('/prices')) {
+      return new Response(JSON.stringify({
+        source: 'OpenRouter',
+        fetchedAt: '2026-01-05T12:00:00.000Z',
+        prices: {
+          'deepseek-v4.1-flash': { currency: 'USD', input: 1, output: 2, cacheRead: 0.1, cacheWrite: 0 },
+        },
+      }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    }
     return new Response(JSON.stringify(payload), {
       status: 200,
       headers: { 'content-type': 'application/json', etag: 'W/"r1"' },
@@ -122,7 +135,8 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.match(container.textContent ?? '', /deepseek-v4\.1-flash/)
   assert.match(container.textContent ?? '', /Fix the parser/)
   assert.match(container.textContent ?? '', /Estimated cost/)
-  assert.match(container.textContent ?? '', /No prices set/)
+  assert.match(container.textContent ?? '', /\$0\.001032/)
+  assert.equal(container.textContent?.includes('No prices set'), false)
   assert.equal(container.querySelectorAll('.tdb-surface').length, 1)
   assert.equal(container.querySelectorAll('.tdb-kpi').length, 4)
   assert.equal(container.querySelectorAll('.tdb-section-title').length, 3)
@@ -199,11 +213,27 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   })
   assert.equal(container.querySelector('.tdb-drawer'), null)
 
-  const setPrices = Array.from(container.querySelectorAll('button'))
-    .find(button => button.textContent === 'Set prices')
-  assert.ok(setPrices, 'set prices button is present')
+  const costRow = container.querySelector<HTMLButtonElement>('.tdb-cost-row')
+  assert.ok(costRow, 'cost row is present')
   await act(async () => {
-    setPrices.click()
+    costRow.click()
+  })
+  const refreshPrices = Array.from(container.querySelectorAll('button'))
+    .find(button => button.textContent === 'Refresh online')
+  assert.ok(refreshPrices, 'online refresh button is present')
+  await act(async () => {
+    refreshPrices.click()
+    await new Promise(resolve => setTimeout(resolve, 10))
+  })
+  assert.match(container.textContent ?? '', /\$0\.002400/)
+  assert.match(container.textContent ?? '', /OpenRouter/)
+  assert.equal(calls.some(url => url.includes('/prices')), true)
+
+  const managePrices = Array.from(container.querySelectorAll('button'))
+    .find(button => button.textContent === 'Manage prices')
+  assert.ok(managePrices, 'manage prices button is present')
+  await act(async () => {
+    managePrices.click()
   })
   assert.match(container.querySelector('.tdb-modal')?.textContent ?? '', /Manage prices/)
 

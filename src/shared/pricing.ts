@@ -4,6 +4,7 @@
  * a rate. All amounts are labelled "Estimated Cost".
  */
 
+import { builtinPriceFor } from './builtin-prices.js'
 import type { ModelUsage, TokenBuckets } from './types.js'
 
 /** One model's user-configured rates, in `currency` per one million tokens. */
@@ -40,6 +41,71 @@ export interface CostEstimate {
   totals: Array<{ currency: string; amount: number }>
   pricedModels: number
   unpricedModels: number
+}
+
+/** A fetched online price table plus where and when it came from. */
+export interface OnlinePricingState {
+  prices: PricingTable
+  source: string
+  fetchedAt: number
+}
+
+/** Resolve user overrides over online prices over built-in list prices. */
+export function defaultsForModels(
+  models: readonly Pick<ModelUsage, 'key' | 'model'>[],
+  online: Readonly<PricingTable>,
+): PricingTable {
+  const table: PricingTable = {}
+  for (const model of models) {
+    const price = online[model.model.trim().toLowerCase()] ?? builtinPriceFor(model.model)
+    if (price !== undefined) table[model.key] = price
+  }
+  return table
+}
+
+/** User overrides win per model; the defaults stay for untouched models. */
+export function mergePricing(defaults: PricingTable, overrides: PricingTable): PricingTable {
+  return { ...defaults, ...overrides }
+}
+
+/** True when two price rows carry identical currency and rates. */
+export function samePrice(left: ModelPrice | undefined, right: ModelPrice | undefined): boolean {
+  if (left === undefined || right === undefined) return left === right
+  return left.currency === right.currency
+    && left.input === right.input
+    && left.output === right.output
+    && left.cacheRead === right.cacheRead
+    && left.cacheWrite === right.cacheWrite
+}
+
+/** Parse the persisted online table defensively. */
+export function parseOnlinePricing(raw: string | null | undefined): OnlinePricingState | null {
+  if (typeof raw !== 'string' || raw.trim() === '') return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    return null
+  }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+  const record = parsed as Record<string, unknown>
+  const source = typeof record.source === 'string' ? record.source.trim().slice(0, 80) : ''
+  const fetchedAt = typeof record.fetchedAt === 'number' && Number.isFinite(record.fetchedAt)
+    ? record.fetchedAt
+    : 0
+  const prices: PricingTable = {}
+  if (record.prices !== null && typeof record.prices === 'object' && !Array.isArray(record.prices)) {
+    for (const [name, value] of Object.entries(record.prices as Record<string, unknown>)) {
+      const price = normalizePrice(value)
+      if (price !== null) prices[name.trim().toLowerCase()] = price
+    }
+  }
+  return { prices, source, fetchedAt }
+}
+
+/** Serialize the online table and its provenance. */
+export function serializeOnlinePricing(state: OnlinePricingState): string {
+  return JSON.stringify(state)
 }
 
 /** True only when every rate and the currency are present and valid. */

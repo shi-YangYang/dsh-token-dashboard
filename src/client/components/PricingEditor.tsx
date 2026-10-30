@@ -1,11 +1,11 @@
 /** Local-only pricing editor. Rates are per one million tokens. */
 
-import { createElement as h, useEffect, useMemo, useState } from 'react'
+import { Fragment, createElement as h, useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, ReactElement } from 'react'
 
 import { Button, Modal } from './common.js'
 import type { T } from '../lib.js'
-import { SUGGESTED_CURRENCIES, type PricingTable } from '../../shared/pricing.js'
+import { SUGGESTED_CURRENCIES, samePrice, type ModelPrice, type PricingTable } from '../../shared/pricing.js'
 import type { ModelUsage } from '../../shared/types.js'
 
 interface DraftRow {
@@ -20,12 +20,13 @@ export interface PricingEditorProps {
   open: boolean
   models: readonly ModelUsage[]
   pricing: PricingTable
+  defaults: PricingTable
   t: T
   onClose: () => void
   onSave: (table: PricingTable) => void
 }
 
-export function PricingEditor({ open, models, pricing, t, onClose, onSave }: PricingEditorProps): ReactElement | null {
+export function PricingEditor({ open, models, pricing, defaults, t, onClose, onSave }: PricingEditorProps): ReactElement | null {
   const [draft, setDraft] = useState<Record<string, DraftRow>>({})
   const [errors, setErrors] = useState<Record<string, boolean>>({})
   const signature = useMemo(() => models.map(model => model.key).join('|'), [models])
@@ -34,7 +35,7 @@ export function PricingEditor({ open, models, pricing, t, onClose, onSave }: Pri
     if (!open) return
     const next: Record<string, DraftRow> = {}
     for (const model of models) {
-      const price = pricing[model.key]
+      const price = pricing[model.key] ?? defaults[model.key]
       next[model.key] = price === undefined
         ? { currency: 'USD', input: '', output: '', cacheRead: '', cacheWrite: '' }
         : {
@@ -77,13 +78,14 @@ export function PricingEditor({ open, models, pricing, t, onClose, onSave }: Pri
         invalid[model.key] = true
         continue
       }
-      next[model.key] = {
+      const candidate: ModelPrice = {
         currency,
         input: parsed[0] ?? 0,
         output: parsed[1] ?? 0,
         cacheRead: parsed[2] ?? 0,
         cacheWrite: parsed[3] ?? 0,
       }
+      if (!samePrice(candidate, defaults[model.key])) next[model.key] = candidate
     }
     if (Object.keys(invalid).length > 0) {
       setErrors(invalid)
@@ -116,8 +118,10 @@ export function PricingEditor({ open, models, pricing, t, onClose, onSave }: Pri
     SUGGESTED_CURRENCIES.map(currency => h('option', { key: currency, value: currency }))),
   models.length === 0
     ? h('div', { className: 'tdb-empty' }, t('models.empty'))
-    : h('div', { key: 'grid', className: 'tdb-pricing-wrap' },
-      h('div', { className: 'tdb-pricing-grid' },
+    : h(Fragment, {},
+      h('div', { key: 'hint', className: 'tdb-pricing-note' }, t('cost.pricingHint')),
+      h('div', { key: 'grid', className: 'tdb-pricing-wrap' },
+        h('div', { className: 'tdb-pricing-grid' },
         h('div', { className: 'tdb-pricing-head' }, t('models.model')),
         h('div', { className: 'tdb-pricing-head' }, t('cost.currency')),
         h('div', { className: 'tdb-pricing-head' }, t('cost.input')),
@@ -149,7 +153,7 @@ export function PricingEditor({ open, models, pricing, t, onClose, onSave }: Pri
               ? h('div', { key: `${model.key}:error`, className: 'tdb-error-text', style: { gridColumn: '1 / -1' } }, t('cost.invalid'))
               : null,
           ]
-        }))))
+        })))))
 }
 
 function rateInput(

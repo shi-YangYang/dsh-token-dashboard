@@ -1,5 +1,7 @@
 /** Client runtime glue: locale, slot context, HTTP fetch, and small helpers. */
 
+import type { PricingTable } from '../shared/pricing.js'
+import { normalizePrice } from '../shared/pricing.js'
 import type { StatsPayload } from '../shared/types.js'
 
 /** Locale namespace registered by this plugin. */
@@ -13,6 +15,8 @@ export const API_VERSION = 1
 export const ENDPOINT = 'dsh-token-dashboard/stats'
 
 export const PRICING_KEY = 'dsh-token-dashboard:pricing:v1'
+
+export const ONLINE_PRICING_KEY = 'dsh-token-dashboard:pricing:online:v1'
 
 export const POLL_INTERVAL_MS = 4_000
 
@@ -131,6 +135,48 @@ export function isStatsPayload(value: unknown): value is StatsPayload {
     && Array.isArray(record.hours)
     && Array.isArray(record.models)
     && Array.isArray(record.sessionRows)
+}
+
+export interface OnlinePrices {
+  prices: PricingTable
+  source: string
+  fetchedAt: number
+}
+
+/** Fetch current OpenRouter list prices through the same-origin Host proxy. */
+export async function fetchOnlinePrices(models: readonly string[]): Promise<OnlinePrices> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 15_000)
+  try {
+    const response = await fetch(endpoint('prices', {
+      refresh: '1',
+      models: models.join(','),
+    }), {
+      headers: { accept: 'application/json' },
+      signal: controller.signal,
+      cache: 'no-store',
+    })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const payload: unknown = await response.json()
+    if (payload === null || typeof payload !== 'object') throw new Error('unexpected response')
+    const record = payload as Record<string, unknown>
+    const source = typeof record.source === 'string' ? record.source : 'OpenRouter'
+    const rawAt = record.fetchedAt
+    const parsedAt = typeof rawAt === 'number'
+      ? rawAt
+      : typeof rawAt === 'string' ? Date.parse(rawAt) : Number.NaN
+    const fetchedAt = Number.isFinite(parsedAt) ? parsedAt : Date.now()
+    const prices: PricingTable = {}
+    if (record.prices !== null && typeof record.prices === 'object' && !Array.isArray(record.prices)) {
+      for (const [name, value] of Object.entries(record.prices as Record<string, unknown>)) {
+        const price = normalizePrice(value)
+        if (price !== null) prices[name.trim().toLowerCase()] = price
+      }
+    }
+    return { prices, source, fetchedAt }
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /** Trigger a browser download for generated text; no DOM is left behind. */

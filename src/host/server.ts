@@ -4,6 +4,7 @@
  * One same-origin, read-only prefix route:
  *   GET /dsh-token-dashboard/stats    dashboard payload (ETag, ?refresh=1)
  *   GET /dsh-token-dashboard/verify   fold vs official tokenUsage projection
+ *   GET /dsh-token-dashboard/prices   optional online list prices (explicit refresh)
  *   GET /dsh-token-dashboard/health   liveness and revision
  *
  * The route reuses the Host Connection gate when the deployment publishes one,
@@ -14,6 +15,7 @@ import { API_PREFIX, API_VERSION } from '../shared/types.js'
 import type { StatsPayload } from '../shared/types.js'
 import type { TokenAggregator } from './aggregate.js'
 import type { AggregatorSource } from './source.js'
+import type { PriceLookup } from './prices.js'
 import type { ConnectionLike, HttpRequestLike, HttpResponseLike, WebServerLike } from './types.js'
 import { verifyAgainstProjection } from './verify.js'
 
@@ -23,6 +25,7 @@ export interface DashboardRoutesOptions {
   aggregator: TokenAggregator
   source: AggregatorSource
   connection?: () => ConnectionLike | undefined
+  prices?: PriceLookup
 }
 
 /** Register the prefix route; returns its disposer. */
@@ -71,6 +74,26 @@ export function registerDashboardRoutes(options: DashboardRoutesOptions): () => 
             return
           }
           sendJson(res, 200, payload, headOnly, { etag })
+          return
+        }
+
+        if (suffix === '/prices') {
+          if (options.prices === undefined) {
+            sendError(res, 503, 'prices-unavailable', 'Online prices are not configured.')
+            return
+          }
+          const rawModels = url.searchParams.get('models') ?? ''
+          const models = [...new Set(rawModels
+            .split(',')
+            .map(model => model.trim())
+            .filter(model => model !== '' && model.length <= 160))]
+            .slice(0, 100)
+          try {
+            const payload = await options.prices.lookup(models, url.searchParams.get('refresh') === '1')
+            sendJson(res, 200, payload, headOnly)
+          } catch {
+            sendError(res, 502, 'prices-unavailable', 'Online prices are unavailable.')
+          }
           return
         }
 

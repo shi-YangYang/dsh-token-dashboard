@@ -79,11 +79,13 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 - 客户端轮询带 `ETag` / `If-None-Match`，数据未变化时只返回 `304`
 - 历史读取并发上限 3，不阻塞主界面
 
-### 费用估算（可选）
+### 费用估算
 
-- 按模型分别配置输入 / 输出 / 缓存读 / 缓存写单价（每 1M tokens）与币种
-- 单价只保存在当前浏览器 `localStorage`，插件不联网、不推断价格
-- 费用区默认折叠在页面底部；展开后按模型显示估算金额，未配置价格的模型显示 **Not set**
+- **内置价目**：已知模型打开即按公开列表价估算，无需先手填；未知模型显示 **Not set**
+- 内置 DeepSeek 官方 2026-10-30 **高峰价**（非高峰为半价），其他模型取 OpenRouter 公开列表价，币种 USD / 1M tokens
+- 可手动覆盖任意单价；**Clear overrides** 恢复内置/在线默认
+- 可选 **Refresh online**：由 Host 代理请求 OpenRouter 免费模型 API，只在点击时联网；失败保留内置价
+- 用户单价与在线缓存只保存在当前浏览器 `localStorage`，不做币种换算
 
 ### 导出
 
@@ -189,13 +191,20 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 ### 费用估算
 
-1. 页面底部一行 **Estimated cost**；未设置价格时点击 **Set prices**
-2. 为每个模型填写币种与四个单价（每 1M tokens）
-3. 保存后立即计算；留空的数值按 0 处理，整行留空则不配置
-4. 已设置价格时点击该行展开逐模型估算；**Manage prices** 重新编辑
-5. **Clear all** 清除全部本地单价
+1. 页面底部一行 **Estimated cost**；已知模型会直接用内置价目计算，未知模型才需要 **Set prices**
+2. 点击该行展开逐模型估算；展开区显示价目来源（内置 / OpenRouter）与刷新按钮
+3. **Refresh online** 从 OpenRouter 免费公开 API 拉取当前列表价（显式点击才联网；Host 代理，无 API Key）
+4. **Manage prices** 打开编辑器；单价按每 1M tokens、四种 bucket + 币种编辑，未修改的行继续使用默认价
+5. **Clear overrides** 清除本地覆盖，恢复内置/在线价格
 
-费用只是估算，不是 provider 账单；插件不会自动抓取价格。
+当前内置价目更新于 **2026-10-30**：
+
+- DeepSeek 官方页：<https://api-docs.deepseek.com/quick_start/pricing>
+  - `deepseek-flash` 高峰：cache hit $0.006 / cache miss $0.30 / output $1.20（每 1M）
+  - `deepseek-v4-pro` 高峰：cache hit $0.044 / cache miss $1.32 / output $3.96（每 1M）
+- 其他模型：<https://openrouter.ai/api/v1/models>（免费、无鉴权）
+
+费用只是估算，不是 provider 账单；OpenCode Go 等订阅制 provider 的实际扣费可能与列表价不同。内置 DeepSeek 使用高峰价，非高峰实际约为一半。插件不会自动抓取价格，只有用户点击 **Refresh online** 时才通过 Host 请求上述 OpenRouter URL。
 
 ### 导出
 
@@ -234,14 +243,16 @@ src/
     source.ts       # sessionPersistence / sessions / sessionQuery 适配
     server.ts       # 只读同源 HTTP 路由、ETag、鉴权
     verify.ts       # 与官方 tokenUsage 投影的诊断对比
+    prices.ts       # 可选 OpenRouter 价目抓取、缓存与模型匹配
     types.ts        # 对 DSH 服务的结构化类型
   shared/           # Host/Client 共用的纯函数与 wire 类型
+    builtin-prices.ts # 内置价目 + 模型别名/日期归一化
   client/
     index.ts        # 浏览器 bundle 入口
     plugin.ts       # Slot 注册（main + sidebar.footer.action）
     App.tsx         # 页面编排：数据、布局、弹窗开关
     DashboardHeader.tsx
-    usePricing.ts   # 浏览器本地单价状态
+    usePricing.ts   # 本地覆盖 + 在线价目缓存/刷新状态
     language.ts     # 本地中英文选择、持久化、订阅
     hooks.ts        # 轮询、宽度、locale、modal
     components/
@@ -263,7 +274,7 @@ src/
         Stat.tsx
     locales.ts      # 中英文字典
     styles.ts       # 主题 Token CSS
-test/               # 69 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language 测试
+test/               # 78 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price 测试
 scripts/
   build-client.mjs  # esbuild + __ModuleLoader__ 包装
   test.mjs          # tsc + node --test
@@ -276,7 +287,7 @@ scripts/
 - Client 用 esbuild 打成单个 CommonJS bundle，再包装为 DSH 的 `window.__ModuleLoader__.load({ id, factory(require) })`；
 - `react` 标记为 external，由宿主模块表注入，避免重复 React；
 - 图表用原生 SVG + React，不引入 ECharts/Chart.js；
-- 无数据库、无外部服务、无网络请求（除同源 `/dsh-token-dashboard/*`）。
+- 无数据库、无外部服务依赖；默认完全离线。只有用户点击 **Refresh online** 时，Host 才请求固定的 OpenRouter 公共价目 URL；页面本身仍只访问同源 `/dsh-token-dashboard/*`。
 
 ### 前端组件化与框架选择
 
@@ -397,6 +408,7 @@ cacheHitRate = cacheReadTokens
 |---|---|
 | `/dsh-token-dashboard/stats` | 完整看板 payload；`?refresh=1` 强制核对 revision |
 | `/dsh-token-dashboard/verify` | 与官方 `tokenUsage` 投影逐会话比对；`?limit=40`（上限 200） |
+| `/dsh-token-dashboard/prices` | 可选在线价目；`?models=a,b&refresh=1`，只返回请求模型的价格 |
 | `/dsh-token-dashboard/health` | `{ ok, apiVersion, initialized, revision }` |
 
 - `/stats` 在数据未变化且 `If-None-Match` 命中时返回 `304`。
@@ -411,7 +423,7 @@ pnpm typecheck
 pnpm test
 ```
 
-当前 69 个测试全部通过，覆盖：
+当前 78 个测试全部通过，覆盖：
 
 - 四桶求和、流式替换、retry 重开、重复 seq、零用量请求、Unknown 归因
 - 分叉继承前缀不进入自身/全局总量
@@ -419,7 +431,7 @@ pnpm test
 - revision 缓存：首次全读、未变化复用、只重读变化会话、活跃增量、活跃→持久化、读取失败保留旧值、删除会话
 - 真实源适配器：persisted/live 合并、只读 handle、tail 读取、投影 lease 释放
 - HTTP：ETag/304、`refresh=1`、Host 鉴权短路、404/405、verify 匹配与不匹配
-- 范围筛选、模型合并、费用、CSV 注入防护、JSON 脱敏
+- 范围筛选、模型合并、内置/在线价目解析与匹配、费用、CSV 注入防护、JSON 脱敏
 - 中英文切换：语言映射、持久化、订阅通知、默认回退
 - 组件 SSR 渲染 + jsdom 中完整挂载、fetch、渲染、手动刷新
 - 编译后的 Client bundle 实际加载、factory 返回、footer 入口与 main 面板渲染
@@ -469,9 +481,9 @@ aggregator:
 1. **内存缓存不跨进程持久化**：重启 DSH 后第一次打开会重新扫描所有会话日志；在本机 23 个会话、约 16k 事件规模下为毫秒级。没有磁盘索引/SQLite，避免引入不可重建的账本。
 2. **首次打开成本与历史总量成正比**：采用并发 3 的批处理，但超大历史（数十万事件）仍可能需要数秒；这是只读扫描，不阻塞 DSH 主界面。
 3. **范围只作用于 Usage 图表**：KPI、模型、会话和费用始终是生命周期总量；这样避免同一页面混用两套范围口径。
-4. **费用估算完全手动**：不内置价格表、不联网、不做币种换算；单价只存在当前浏览器。
+4. **费用估算是列表价近似**：内置 DeepSeek 高峰价与其他模型 OpenRouter 列表价，不做币种换算；订阅制 provider 的实际扣费可能不同。在线刷新只在显式点击时发生。
 5. **会话跳转依赖 `uiWorkspace.openSession`**：宿主不提供该服务时按钮隐藏或不生效。
-6. **单价存在浏览器本地**：卸载插件或更换浏览器不会自动清理/迁移 `localStorage` 中的单价；需要时可在浏览器站点数据中删除。
+6. **覆盖单价与在线缓存存在浏览器本地**：卸载插件或更换浏览器不会自动清理/迁移 `localStorage` 中的用户覆盖和在线价目；需要时可在浏览器站点数据中删除。
 7. **分叉口径差异**：本插件全局统计排除继承历史；官方 `tokenUsage` 投影在某些版本可能包含完整日志。`/verify` 会同时报告自身与完整日志两种结果，便于核对。
 8. **标题与项目元数据**：没有 `session/title` 的旧会话显示“未命名会话”；项目名优先取工作区标题，否则取 cwd 目录名（Windows / POSIX 分隔符都支持）。
 9. **仅覆盖当前 profile 的持久化根**：其他 profile、其他机器或未落盘的会话不在统计内。

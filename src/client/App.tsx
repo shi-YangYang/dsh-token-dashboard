@@ -19,6 +19,7 @@ import { makeT } from './lib.js'
 import { setLanguage, useLanguage } from './language.js'
 import { en, zh } from './locales.js'
 import { totalTokens } from '../shared/model.js'
+import { defaultsForModels, mergePricing } from '../shared/pricing.js'
 import { CSS } from './styles.js'
 
 export interface DashboardProps {
@@ -35,7 +36,19 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   const now = useNow(60_000)
   const stats = useStats()
   const data = stats.data
-  const { pricing, savePricing } = usePricing()
+  const {
+    pricing,
+    savePricing,
+    online,
+    onlineSource,
+    onlineAt,
+    refreshingOnline,
+    onlineError,
+    refreshOnline,
+  } = usePricing()
+  const models = useMemo(() => data?.models ?? [], [data])
+  const defaults = useMemo(() => defaultsForModels(models, online), [models, online])
+  const effectivePricing = useMemo(() => mergePricing(defaults, pricing), [defaults, pricing])
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [pricingOpen, setPricingOpen] = useState(false)
@@ -116,9 +129,14 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
           }),
           h(CostPanel, {
             models: data.models,
-            pricing,
+            pricing: effectivePricing,
             t,
             intl,
+            onlineAt,
+            onlineSource,
+            refreshingPrices: refreshingOnline,
+            priceError: onlineError,
+            onRefreshPrices: () => { void refreshOnline(data.models) },
             onConfigure: () => setPricingOpen(true),
           })))),
     h(SessionDetail, {
@@ -137,6 +155,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
       open: pricingOpen,
       models: data.models,
       pricing,
+      defaults,
       t,
       onClose: () => setPricingOpen(false),
       onSave: savePricing,

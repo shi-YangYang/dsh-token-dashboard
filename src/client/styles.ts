@@ -411,7 +411,9 @@ export const CSS = `
 .tdb-cost-chevron { color: var(--tdb-ink-2); display: inline-flex; flex: 0 0 auto; }
 .tdb-cost-body { padding: 0 22px 18px; display: flex; flex-direction: column; gap: 10px; }
 .tdb-cost-note { font-size: 11px; color: var(--tdb-ink-2); }
-.tdb-cost-actions { display: flex; justify-content: flex-end; }
+.tdb-cost-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.tdb-cost-pricebar { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.tdb-pricing-note { font-size: 11px; line-height: 1.5; color: var(--tdb-ink-2); margin-bottom: 10px; overflow-wrap: anywhere; }
 
 .tdb-modal-backdrop {
   position: fixed;

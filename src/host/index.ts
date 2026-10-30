@@ -11,6 +11,7 @@
  */
 
 import { TokenAggregator } from './aggregate.js'
+import { createPriceService } from './prices.js'
 import { registerDashboardRoutes } from './server.js'
 import { createDshSource } from './source.js'
 import type {
@@ -49,8 +50,9 @@ export function apply(ctx: HostContextLike): void {
 
   const source = createDshSource(access)
   const aggregator = new TokenAggregator(source, { concurrency: 3 })
+  const prices = createPriceService()
   wireLiveEvents(ctx, aggregator)
-  wireRoutes(ctx, aggregator, source)
+  wireRoutes(ctx, aggregator, source, prices)
 }
 
 /** Fold live events without rescanning history; resync only on a gap. */
@@ -114,6 +116,7 @@ function wireRoutes(
   ctx: HostContextLike,
   aggregator: TokenAggregator,
   source: ReturnType<typeof createDshSource>,
+  prices: ReturnType<typeof createPriceService>,
 ): void {
   ctx.inject(['webServer'], (webCtx: HostContextLike) => {
     const server = webCtx.get('webServer') as WebServerLike | undefined
@@ -122,6 +125,7 @@ function wireRoutes(
       server,
       aggregator,
       source,
+      prices,
       connection: () => ctx.get('connection') as ConnectionLike | undefined,
     }), 'dsh-token-dashboard: dashboard routes')
   })

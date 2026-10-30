@@ -163,6 +163,11 @@ test('empty tables and cost estimates render their explicit empty states', () =>
     pricing: {},
     t,
     intl,
+    onlineAt: 0,
+    onlineSource: '',
+    refreshingPrices: false,
+    priceError: false,
+    onRefreshPrices: () => {},
     onConfigure: () => {},
   }))
   assert.match(cost, /No prices set/)
@@ -177,6 +182,11 @@ test('a configured price renders an estimated amount', () => {
     },
     t,
     intl,
+    onlineAt: 0,
+    onlineSource: '',
+    refreshingPrices: false,
+    priceError: false,
+    onRefreshPrices: () => {},
     onConfigure: () => {},
   }))
   assert.match(markup, /Estimated cost/)
@@ -204,6 +214,7 @@ test('the pricing editor renders one editable row per model', () => {
     open: true,
     models: [model],
     pricing: {},
+    defaults: {},
     t,
     onClose: () => {},
     onSave: () => {},

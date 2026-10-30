@@ -110,6 +110,38 @@ test('stats returns the aggregated payload with an ETag and no event text', asyn
   assert.equal(server.route, null)
 })
 
+test('the price proxy delegates requested models with an explicit refresh', async () => {
+  const source = createSource()
+  const aggregator = new TokenAggregator(source, { now: () => T0 + 1_000 })
+  const server = new FakeServer()
+  let seen: readonly string[] = []
+  let forced = false
+  registerDashboardRoutes({
+    server,
+    aggregator,
+    source,
+    prices: {
+      lookup: async (models, force) => {
+        seen = models
+        forced = force
+        return {
+          source: 'OpenRouter',
+          fetchedAt: '2026-10-30T00:00:00.000Z',
+          prices: {
+            'deepseek-flash': { currency: 'USD', input: 0.3, output: 1.2, cacheRead: 0.006, cacheWrite: 0 },
+          },
+        }
+      },
+    },
+  })
+
+  const res = await call(server, request('/dsh-token-dashboard/prices?refresh=1&models=deepseek-flash,unknown'))
+  assert.equal(res.statusCode, 200)
+  assert.deepEqual(seen, ['deepseek-flash', 'unknown'])
+  assert.equal(forced, true)
+  assert.equal(JSON.parse(res.body).prices['deepseek-flash'].input, 0.3)
+})
+
 test('a matching If-None-Match answers 304 with no body', async () => {
   const source = createSource()
   const aggregator = new TokenAggregator(source, { now: () => T0 + 1_000 })
