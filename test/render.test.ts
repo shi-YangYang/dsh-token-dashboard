@@ -114,10 +114,10 @@ test('KPI cards render the four lifetime numbers', () => {
   assert.match(markup, /hit rate/)
 })
 
-test('the trend section renders one chart with three view choices', () => {
+test('the trend section renders one chart with two view choices', () => {
   const markup = renderToStaticMarkup(h(Trends, { data: payload, t, intl }))
   assert.match(markup, /Usage/)
-  assert.match(markup, /Tokens/)
+  assert.doesNotMatch(markup, /Tokens/)
   assert.match(markup, /Input \/ Output/)
   assert.match(markup, /Cache/)
   assert.match(markup, /4K tokens/)

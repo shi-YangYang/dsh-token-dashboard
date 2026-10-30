@@ -51,8 +51,8 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 
 ### 图表
 
-- 一个 Usage 图表，通过 Tokens / Input / Output / Cache 三个视图切换
-- Tokens：输入 / 缓存读 / 缓存写 / 输出四类堆叠
+- 一个 Usage 图表，通过 Input / Output 与 Cache 两个视图切换
+- Input / Output：每个时间桶两组独立柱，输入和输出不再堆在同一根柱子里
 - Input / Output：两类分组对比
 - Cache：缓存读 / 写堆叠 + 每桶命中率折线
 - 纯 SVG、无图表依赖；悬停提示显示该桶明细
@@ -187,7 +187,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 ### 概览 / Usage 图表
 
 - 标题右侧切换时间范围；Custom 时展开起止日期
-- 图表上方左侧切换视图（Tokens / Input / Output / Cache），右侧显示该范围的总量与请求数
+- 图表上方左侧切换视图（Input / Output / Cache），右侧显示该范围的总量与请求数
 - `Today` 按小时展示今天 24 个小时桶；其余范围按自然日、空缺补零
 - 图表悬停可查看该桶四类 Token 与请求数
 - 柱体使用 5 段整齐纵轴刻度、顶部圆角与整列悬停高亮；Input/Output、Cache 各自有独立空态文案

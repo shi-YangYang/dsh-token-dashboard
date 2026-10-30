@@ -3,7 +3,7 @@
 import { createElement as h, useMemo, useState } from 'react'
 import type { ReactElement } from 'react'
 
-import { CacheChart, GroupedBars, StackedBars } from './charts.js'
+import { CacheChart, GroupedBars } from './charts.js'
 import { TextInput } from './common.js'
 import { Section } from './ui/Section.js'
 import { SegmentedTabs } from './ui/Tabs.js'
@@ -14,7 +14,7 @@ import { selectRange } from '../../shared/range.js'
 import type { RangeId, RangeSelection } from '../../shared/range.js'
 import type { StatsPayload } from '../../shared/types.js'
 
-type View = 'tokens' | 'io' | 'cache'
+type View = 'io' | 'cache'
 
 export interface TrendsProps {
   data: StatsPayload
@@ -24,7 +24,7 @@ export interface TrendsProps {
 
 export function Trends({ data, t, intl }: TrendsProps): ReactElement {
   const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
-  const [view, setView] = useState<View>('tokens')
+  const [view, setView] = useState<View>('io')
 
   const result = useMemo(() => selectRange({
     days: data.days,
@@ -42,7 +42,6 @@ export function Trends({ data, t, intl }: TrendsProps): ReactElement {
   ]
 
   const views: Array<{ id: View; label: string }> = [
-    { id: 'tokens', label: t('trend.tokens') },
     { id: 'io', label: t('trend.io') },
     { id: 'cache', label: t('trend.cache') },
   ]
@@ -100,29 +99,20 @@ export function Trends({ data, t, intl }: TrendsProps): ReactElement {
         tokens: formatCompact(result.totalTokens, intl),
         requests: formatNumber(result.requests, intl),
       }))),
-  view === 'tokens'
-    ? h(StackedBars, { buckets: result.buckets, granularity: result.granularity, t, intl })
-    : view === 'io'
-      ? h(GroupedBars, { buckets: result.buckets, granularity: result.granularity, t, intl })
-      : h(CacheChart, { buckets: result.buckets, granularity: result.granularity, t, intl }),
+  view === 'io'
+    ? h(GroupedBars, { buckets: result.buckets, granularity: result.granularity, t, intl })
+    : h(CacheChart, { buckets: result.buckets, granularity: result.granularity, t, intl }),
     h(Legend, {
-      items: view === 'tokens'
+      items: view === 'io'
         ? [
           { label: t('legend.input'), color: 'var(--tdb-cat-input)' },
-          { label: t('legend.cacheRead'), color: 'var(--tdb-cat-cache-read)' },
-          { label: t('legend.cacheWrite'), color: 'var(--tdb-cat-cache-write)' },
           { label: t('legend.output'), color: 'var(--tdb-cat-output)' },
         ]
-        : view === 'io'
-          ? [
-            { label: t('legend.input'), color: 'var(--tdb-cat-input)' },
-            { label: t('legend.output'), color: 'var(--tdb-cat-output)' },
-          ]
-          : [
-            { label: t('legend.cacheRead'), color: 'var(--tdb-cat-cache-read)' },
-            { label: t('legend.cacheWrite'), color: 'var(--tdb-cat-cache-write)' },
-            { label: t('legend.hitRate'), color: 'var(--tdb-cat-hit)', line: true },
-          ],
+        : [
+          { label: t('legend.cacheRead'), color: 'var(--tdb-cat-cache-read)' },
+          { label: t('legend.cacheWrite'), color: 'var(--tdb-cat-cache-write)' },
+          { label: t('legend.hitRate'), color: 'var(--tdb-cat-hit)', line: true },
+        ],
     }))
 }
 
