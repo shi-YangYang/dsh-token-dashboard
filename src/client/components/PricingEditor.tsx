@@ -4,9 +4,12 @@ import { Fragment, createElement as h, useEffect, useMemo, useState } from 'reac
 import type { ChangeEvent, ReactElement } from 'react'
 
 import { Button, Modal } from './common.js'
+import { ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
 import type { T } from '../lib.js'
 import { SUGGESTED_CURRENCIES, samePrice, type ModelPrice, type PricingTable } from '../../shared/pricing.js'
 import type { ModelUsage } from '../../shared/types.js'
+
+const PAGE_SIZE = 6
 
 interface DraftRow {
   currency: string
@@ -29,6 +32,7 @@ export interface PricingEditorProps {
 export function PricingEditor({ open, models, pricing, defaults, t, onClose, onSave }: PricingEditorProps): ReactElement | null {
   const [draft, setDraft] = useState<Record<string, DraftRow>>({})
   const [errors, setErrors] = useState<Record<string, boolean>>({})
+  const [page, setPage] = useState(0)
   const signature = useMemo(() => models.map(model => model.key).join('|'), [models])
 
   useEffect(() => {
@@ -48,11 +52,16 @@ export function PricingEditor({ open, models, pricing, defaults, t, onClose, onS
     }
     setDraft(next)
     setErrors({})
+    setPage(0)
     // Seed the form when the editor opens; keystrokes never reset it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, signature])
 
   if (!open) return null
+
+  const pages = Math.max(1, Math.ceil(models.length / PAGE_SIZE))
+  const current = Math.min(page, pages - 1)
+  const visible = models.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
 
   const update = (key: string, field: keyof DraftRow, value: string): void => {
     setDraft(current => ({
@@ -87,8 +96,10 @@ export function PricingEditor({ open, models, pricing, defaults, t, onClose, onS
       }
       if (!samePrice(candidate, defaults[model.key])) next[model.key] = candidate
     }
-    if (Object.keys(invalid).length > 0) {
+    const firstInvalid = models.findIndex(model => invalid[model.key] === true)
+    if (firstInvalid >= 0) {
       setErrors(invalid)
+      setPage(Math.floor(firstInvalid / PAGE_SIZE))
       return
     }
     onSave(next)
@@ -128,7 +139,7 @@ export function PricingEditor({ open, models, pricing, defaults, t, onClose, onS
         h('div', { className: 'tdb-pricing-head' }, t('cost.output')),
         h('div', { className: 'tdb-pricing-head tdb-pricing-head--extra' }, t('cost.cacheRead')),
         h('div', { className: 'tdb-pricing-head tdb-pricing-head--extra' }, t('cost.cacheWrite')),
-        models.map(model => {
+        visible.map(model => {
           const row = draft[model.key] ?? { currency: 'USD', input: '', output: '', cacheRead: '', cacheWrite: '' }
           const invalid = errors[model.key] === true
           return [
@@ -153,7 +164,26 @@ export function PricingEditor({ open, models, pricing, defaults, t, onClose, onS
               ? h('div', { key: `${model.key}:error`, className: 'tdb-error-text', style: { gridColumn: '1 / -1' } }, t('cost.invalid'))
               : null,
           ]
-        })))))
+        }))),
+      pages > 1
+        ? h('div', { key: 'pager', className: 'tdb-pager' },
+          h('span', {}, t('sessions.page', { page: current + 1, pages })),
+          h('div', { className: 'tdb-pager-actions' },
+            h(Button, {
+              variant: 'ghost',
+              iconOnly: true,
+              disabled: current <= 0,
+              'aria-label': t('sessions.previous'),
+              onClick: () => setPage(Math.max(0, current - 1)),
+            }, h(ChevronLeftIcon, { size: 15 })),
+            h(Button, {
+              variant: 'ghost',
+              iconOnly: true,
+              disabled: current >= pages - 1,
+              'aria-label': t('sessions.next'),
+              onClick: () => setPage(Math.min(pages - 1, current + 1)),
+            }, h(ChevronRightIcon, { size: 15 }))))
+        : null))
 }
 
 function rateInput(

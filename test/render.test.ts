@@ -224,6 +224,26 @@ test('the pricing editor renders one editable row per model', () => {
   assert.match(markup, /deepseek-v4\.1-flash/)
 })
 
+test('the pricing editor paginates a long model list', () => {
+  const many = Array.from({ length: 7 }, (_, index): ModelUsage => ({
+    ...model,
+    key: `p::m-${index}`,
+    model: `model-${index}`,
+  }))
+  const markup = renderToStaticMarkup(h(PricingEditor, {
+    open: true,
+    models: many,
+    pricing: {},
+    defaults: {},
+    t,
+    onClose: () => {},
+    onSave: () => {},
+  }))
+  assert.match(markup, /1 \/ 2/)
+  assert.match(markup, /model-0/)
+  assert.doesNotMatch(markup, /model-6/)
+})
+
 test('the dashboard shell renders its loading state without a Host', () => {
   const markup = renderToStaticMarkup(h(Dashboard))
   assert.match(markup, /tdb-skeleton/)

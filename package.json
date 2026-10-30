@@ -49,6 +49,7 @@
   },
   "scripts": {
     "build": "npm run build:host && npm run build:client",
+    "build:prices": "node scripts/build-builtin-prices.mjs",
     "build:host": "tsc -p tsconfig.host.json",
     "build:client": "node scripts/build-client.mjs",
     "pretest": "node scripts/build-client.mjs",

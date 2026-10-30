@@ -8,9 +8,10 @@
  */
 
 import type { ModelPrice } from './pricing.js'
+import { GENERATED_PRICES, GENERATED_PRICE_UPDATED } from './builtin-prices.generated.js'
 
-export const BUILTIN_PRICE_UPDATED = '2026-10-30'
-export const BUILTIN_PRICE_SOURCE = 'DeepSeek official + OpenRouter'
+export const BUILTIN_PRICE_UPDATED = GENERATED_PRICE_UPDATED
+export const BUILTIN_PRICE_SOURCE = 'DeepSeek official + OpenRouter snapshot'
 
 export interface BuiltinPriceEntry {
   id: string
@@ -40,41 +41,6 @@ export const BUILTIN_PRICES: readonly BuiltinPriceEntry[] = [
       'deepseek-reasoner',
     ],
     price: { currency: 'USD', input: 1.32, output: 3.96, cacheRead: 0.044, cacheWrite: 0 },
-  },
-  {
-    id: 'gpt-6.1-terra',
-    aliases: ['gpt-6.1-terra-pro'],
-    price: { currency: 'USD', input: 1, output: 5, cacheRead: 0.05, cacheWrite: 1.25 },
-  },
-  {
-    id: 'gpt-6-luna',
-    aliases: [],
-    price: { currency: 'USD', input: 0.1, output: 0.5, cacheRead: 0.01, cacheWrite: 0.125 },
-  },
-  {
-    id: 'gpt-6-sol',
-    aliases: [],
-    price: { currency: 'USD', input: 2, output: 10, cacheRead: 0.2, cacheWrite: 2.5 },
-  },
-  {
-    id: 'claude-opus-5.5',
-    aliases: [],
-    price: { currency: 'USD', input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 },
-  },
-  {
-    id: 'kimi-k3.1-pro',
-    aliases: [],
-    price: { currency: 'USD', input: 2, output: 10, cacheRead: 0.2, cacheWrite: 0 },
-  },
-  {
-    id: 'minimax-m3.1-flash',
-    aliases: [],
-    price: { currency: 'USD', input: 0.15, output: 0.6, cacheRead: 0.015, cacheWrite: 0 },
-  },
-  {
-    id: 'mimo-v2.6-flash',
-    aliases: [],
-    price: { currency: 'USD', input: 0.14, output: 0.28, cacheRead: 0.0028, cacheWrite: 0 },
   },
 ]
 
@@ -120,11 +86,18 @@ export function modelKeyCandidates(model: string): string[] {
 }
 
 const BUILTIN_BY_KEY = new Map<string, ModelPrice>()
+// Hand-maintained DeepSeek aliases and official rates win over the generated
+// OpenRouter snapshot; generated entries then fill every other model.
 for (const entry of BUILTIN_PRICES) {
   for (const key of [entry.id, ...entry.aliases]) {
     for (const candidate of modelKeyCandidates(key)) {
       if (!BUILTIN_BY_KEY.has(candidate)) BUILTIN_BY_KEY.set(candidate, entry.price)
     }
+  }
+}
+for (const entry of GENERATED_PRICES) {
+  for (const candidate of modelKeyCandidates(entry.id)) {
+    if (!BUILTIN_BY_KEY.has(candidate)) BUILTIN_BY_KEY.set(candidate, entry.price)
   }
 }
 
