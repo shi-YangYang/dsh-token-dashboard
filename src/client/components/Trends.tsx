@@ -60,7 +60,7 @@ export function Trends({ data, t, intl }: TrendsProps): ReactElement {
   }
 
   return h(Section, {
-    title: t('trend.title'),
+    ariaLabel: t('trend.title'),
     actions: h(SegmentedTabs<RangeId>, {
       items: rangeTabs,
       value: range.id,

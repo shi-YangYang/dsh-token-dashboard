@@ -181,7 +181,7 @@ export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): R
               onClick: () => setPage(Math.min(pages - 1, current + 1)),
             }, h(ChevronRightIcon, { size: 15 })))))
 
-  return h(Section, { title: t('sessions.title'), ariaLabel: t('sessions.title') },
+  return h(Section, { ariaLabel: t('sessions.title') },
     rows.length === 0
       ? body
       : h('div', {},

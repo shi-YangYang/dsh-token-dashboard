@@ -103,7 +103,6 @@ export function CostPage(props: CostProps): ReactElement {
   const refreshLabel = refreshingPrices ? t('cost.refreshing') : t('cost.refresh')
 
   return h(Section, {
-    title: t('cost.title'),
     ariaLabel: t('cost.title'),
     actions: h('div', { className: 'tdb-cost-actions' },
       h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel),

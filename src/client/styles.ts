@@ -206,6 +206,7 @@ export const CSS = `
 .tdb-kpi-sub { margin-top: 4px; font-size: 12px; color: var(--tdb-ink-2); }
 
 .tdb-section { padding: 20px 22px; min-width: 0; }
+.tdb-section-head.tdb-section-head--actions-only { justify-content: flex-end; }
 .tdb-section-head {
   display: flex;
   align-items: center;

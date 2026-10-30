@@ -84,7 +84,7 @@ export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElemen
     },
   ]
 
-  return h(Section, { title: t('models.title'), ariaLabel: t('models.title') },
+  return h(Section, { ariaLabel: t('models.title') },
     models.length === 0
       ? h(EmptyState, { icon: h(ChartIcon, { size: 20 }), title: t('models.empty') })
       : h('div', { className: 'tdb-table-panel' },

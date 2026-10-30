@@ -148,7 +148,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.equal(container.querySelectorAll('.tdb-surface').length, 1)
   assert.equal(container.querySelectorAll('.tdb-pagetab').length, 4)
   assert.equal(container.querySelectorAll('.tdb-kpi').length, 4)
-  assert.equal(container.querySelectorAll('.tdb-section-title').length, 1)
+  assert.equal(container.querySelectorAll('.tdb-section-title').length, 0)
   assert.equal(container.textContent?.includes('Lifetime'), false)
   assert.equal(container.textContent?.includes('Read-only'), false)
 
@@ -197,7 +197,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   await switchTab('Models')
   assert.match(container.textContent ?? '', /deepseek-v4\.1-flash/)
   assert.doesNotMatch(container.textContent ?? '', /Fix the parser/)
-  assert.equal(container.querySelectorAll('.tdb-section-title').length, 1)
+  assert.equal(container.querySelectorAll('.tdb-section-title').length, 0)
 
   await switchTab('Sessions')
   assert.match(container.textContent ?? '', /Fix the parser/)

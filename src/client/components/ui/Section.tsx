@@ -4,7 +4,7 @@ import { createElement as h } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 
 export interface SectionProps {
-  title: ReactNode
+  title?: ReactNode
   actions?: ReactNode
   children?: ReactNode
   ariaLabel?: string
@@ -12,12 +12,17 @@ export interface SectionProps {
 }
 
 export function Section({ title, actions, children, ariaLabel, className = '' }: SectionProps): ReactElement {
+  const hasHeader = title !== undefined || actions !== undefined
   return h('section', {
     className: `tdb-section ${className}`.trim(),
     'aria-label': ariaLabel ?? (typeof title === 'string' ? title : undefined),
   },
-  h('div', { className: 'tdb-section-head' },
-    h('h2', { className: 'tdb-section-title' }, title),
-    actions === undefined ? null : h('div', { className: 'tdb-section-actions' }, actions)),
+  hasHeader
+    ? h('div', {
+      className: `tdb-section-head${title === undefined ? ' tdb-section-head--actions-only' : ''}`,
+    },
+    title === undefined ? null : h('h2', { className: 'tdb-section-title' }, title),
+    actions === undefined ? null : h('div', { className: 'tdb-section-actions' }, actions))
+    : null,
   children)
 }
