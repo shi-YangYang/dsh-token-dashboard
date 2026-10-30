@@ -195,7 +195,7 @@ function totalLabelOf(estimate: CostEstimate): string | null {
 
 function sourceText(t: T, intl: string | undefined, onlineAt: number, onlineSource: string): string {
   if (onlineAt > 0) {
-    return t('cost.onlineSource', {
+    return t('cost.autoSource', {
       source: onlineSource === '' ? 'OpenRouter' : onlineSource,
       when: formatDateTime(onlineAt, intl),
     })

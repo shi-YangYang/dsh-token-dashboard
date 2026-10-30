@@ -84,7 +84,8 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 - **内置价目**：把当前 OpenRouter 可获取的全部有效模型（生成快照 357 个）与 DeepSeek 官方价目内置，已知模型打开即估算，无需先手填；未知模型显示 **Not set**
 - 内置 DeepSeek 官方 2026-10-30 **高峰价**（非高峰为半价），其他模型取 OpenRouter 公开列表价，币种 USD / 1M tokens
 - 可手动覆盖任意单价；**Clear overrides** 恢复内置/在线默认
-- 可选 **Refresh online**：由 Host 代理请求 OpenRouter 免费模型 API，只在点击时联网；失败保留内置价
+- **自动同步**：打开页面后自动检查在线价目（约 3 秒后首检，之后每 6 小时检查，超过 24 小时才重新拉取）；Host 代理请求 OpenRouter 免费 API，失败静默回退内置价
+- 仍可手动点击 **Refresh online** 立即同步
 - 用户单价与在线缓存只保存在当前浏览器 `localStorage`，不做币种换算
 
 ### 导出
@@ -208,7 +209,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 1. 费用页顶部显示 **预估总额**；已知模型会直接用内置价目计算，未知模型才需要 **Set prices**
 2. 下方是逐模型费用表，8 个/页；表格上方显示价目来源（内置 / OpenRouter）与刷新按钮
-3. **Refresh online** 从 OpenRouter 免费公开 API 拉取当前列表价（显式点击才联网；Host 代理，无 API Key）
+3. 页面自动同步 OpenRouter 免费公开 API 的当前列表价（首检约 3 秒、每 6 小时检查；Host 代理，无 API Key）；**Refresh online** 可立即手动同步
 4. **Manage prices** 打开编辑器；单价按每 1M tokens、四种 bucket + 币种编辑，未修改的行继续使用默认价；每页 6 个模型，避免长列表撑开模态框
 5. **Clear overrides** 清除本地覆盖，恢复内置/在线价格
 
@@ -219,7 +220,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
   - `deepseek-v4-pro` 高峰：cache hit $0.044 / cache miss $1.32 / output $3.96（每 1M）
 - 其他模型：<https://openrouter.ai/api/v1/models>（免费、无鉴权）
 
-费用只是估算，不是 provider 账单；OpenCode Go 等订阅制 provider 的实际扣费可能与列表价不同。内置 DeepSeek 使用高峰价，非高峰实际约为一半。插件不会自动抓取价格，只有用户点击 **Refresh online** 时才通过 Host 请求上述 OpenRouter URL。
+费用只是估算，不是 provider 账单；OpenCode Go 等订阅制 provider 的实际扣费可能与列表价不同。内置 DeepSeek 使用高峰价，非高峰实际约为一半。打开页面后插件会在约 3 秒后自动检查在线价目，之后每 6 小时检查；在线价目超过 24 小时才重新请求。也可点击 **Refresh online** 立即同步。
 
 ### 导出
 
@@ -305,7 +306,7 @@ scripts/
 - Client 用 esbuild 打成单个 CommonJS bundle，再包装为 DSH 的 `window.__ModuleLoader__.load({ id, factory(require) })`；
 - `react` 标记为 external，由宿主模块表注入，避免重复 React；
 - 图表用原生 SVG + React，不引入 ECharts/Chart.js；
-- 无数据库、无外部服务依赖；默认完全离线。只有用户点击 **Refresh online** 时，Host 才请求固定的 OpenRouter 公共价目 URL；页面本身仍只访问同源 `/dsh-token-dashboard/*`。
+- 无数据库、无外部服务依赖；默认离线。页面打开后会自动检查一次在线价目（约 3 秒后，之后每 6 小时；超过 24 小时才重新拉取），Host 只请求固定的 OpenRouter 公共价目 URL；页面本身仍只访问同源 `/dsh-token-dashboard/*`。
 
 ### 前端组件化与框架选择
 
@@ -501,7 +502,7 @@ aggregator:
 1. **内存缓存不跨进程持久化**：重启 DSH 后第一次打开会重新扫描所有会话日志；在本机 23 个会话、约 16k 事件规模下为毫秒级。没有磁盘索引/SQLite，避免引入不可重建的账本。
 2. **首次打开成本与历史总量成正比**：采用并发 3 的批处理，但超大历史（数十万事件）仍可能需要数秒；这是只读扫描，不阻塞 DSH 主界面。
 3. **范围作用于 KPI 与 Usage 图表**：模型、会话和费用仍为生命周期总量；KPI 跟随图表范围，图表与数值使用同一口径。
-4. **费用估算是列表价近似**：内置 DeepSeek 高峰价与其他模型 OpenRouter 列表价，不做币种换算；订阅制 provider 的实际扣费可能不同。在线刷新只在显式点击时发生。
+4. **费用估算是列表价近似**：内置 DeepSeek 高峰价与其他模型 OpenRouter 列表价，不做币种换算；订阅制 provider 的实际扣费可能不同。在线价目会在页面打开约 3 秒后自动同步，之后每 6 小时检查，失败静默回退内置价。
 5. **会话跳转依赖 `uiWorkspace.openSession`**：宿主不提供该服务时按钮隐藏或不生效。
 6. **覆盖单价与在线缓存存在浏览器本地**：卸载插件或更换浏览器不会自动清理/迁移 `localStorage` 中的用户覆盖和在线价目；需要时可在浏览器站点数据中删除。
 7. **分叉口径差异**：本插件全局统计排除继承历史；官方 `tokenUsage` 投影在某些版本可能包含完整日志。`/verify` 会同时报告自身与完整日志两种结果，便于核对。

@@ -123,6 +123,7 @@ export const en: LocaleDict = {
   'cost.refreshError': 'Online prices are unavailable; built-in prices are still used.',
   'cost.builtinSource': 'Built-in · {date}',
   'cost.onlineSource': '{source} · {when}',
+  'cost.autoSource': 'Auto-synced · {source} · {when}',
   'cost.pricingHint': 'List prices are pre-filled. Edit any rate to override; Clear overrides restores the defaults. DeepSeek uses peak rates.',
   'cost.invalid': 'Enter a valid rate.',
 
@@ -255,6 +256,7 @@ export const zh: LocaleDict = {
   'cost.refreshError': '在线价格获取失败，继续使用内置价格。',
   'cost.builtinSource': '内置价目 · {date}',
   'cost.onlineSource': '{source} · {when}',
+  'cost.autoSource': '自动同步 · {source} · {when}',
   'cost.pricingHint': '已预填公开价目；修改任意单价即可覆盖，清除自定义价格恢复默认。DeepSeek 按高峰价。',
   'cost.invalid': '请输入有效单价。',
 

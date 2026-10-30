@@ -23,7 +23,10 @@ export interface PricingController {
   onlineAt: number
   refreshingOnline: boolean
   onlineError: boolean
-  refreshOnline: (models: readonly ModelUsage[]) => Promise<OnlinePricingState | null>
+  refreshOnline: (
+    models: readonly ModelUsage[],
+    options?: { force?: boolean; silent?: boolean },
+  ) => Promise<OnlinePricingState | null>
 }
 
 const EMPTY_ONLINE: OnlinePricingState = { prices: {}, source: '', fetchedAt: 0 }
@@ -57,17 +60,22 @@ export function usePricing(): PricingController {
     }
   }, [])
 
-  const refreshOnline = useCallback(async (models: readonly ModelUsage[]): Promise<OnlinePricingState | null> => {
+  const refreshOnline = useCallback(async (
+    models: readonly ModelUsage[],
+    options: { force?: boolean; silent?: boolean } = {},
+  ): Promise<OnlinePricingState | null> => {
     const names = [...new Set(
       models
         .map(model => model.model.trim())
         .filter(model => model !== ''),
     )].slice(0, 100)
     if (names.length === 0) return null
-    setRefreshingOnline(true)
-    setOnlineError(false)
+    const force = options.force ?? true
+    const silent = options.silent === true
+    if (!silent) setRefreshingOnline(true)
+    if (!silent) setOnlineError(false)
     try {
-      const result = await fetchOnlinePrices(names)
+      const result = await fetchOnlinePrices(names, force)
       const next: OnlinePricingState = {
         prices: { ...onlineState.prices, ...result.prices },
         source: result.source === '' ? 'OpenRouter' : result.source,
@@ -81,10 +89,10 @@ export function usePricing(): PricingController {
       }
       return next
     } catch {
-      setOnlineError(true)
+      if (!silent) setOnlineError(true)
       return null
     } finally {
-      setRefreshingOnline(false)
+      if (!silent) setRefreshingOnline(false)
     }
   }, [onlineState.prices])
 

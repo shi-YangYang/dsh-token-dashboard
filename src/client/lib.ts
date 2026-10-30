@@ -144,14 +144,13 @@ export interface OnlinePrices {
 }
 
 /** Fetch current OpenRouter list prices through the same-origin Host proxy. */
-export async function fetchOnlinePrices(models: readonly string[]): Promise<OnlinePrices> {
+export async function fetchOnlinePrices(models: readonly string[], force = true): Promise<OnlinePrices> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 15_000)
   try {
-    const response = await fetch(endpoint('prices', {
-      refresh: '1',
-      models: models.join(','),
-    }), {
+    const params: Record<string, string> = { models: models.join(',') }
+    if (force) params.refresh = '1'
+    const response = await fetch(endpoint('prices', params), {
       headers: { accept: 'application/json' },
       signal: controller.signal,
       cache: 'no-store',

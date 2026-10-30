@@ -1,6 +1,6 @@
 /** The dashboard page: one surface, four numbers, one chart, two tables. */
 
-import { Fragment, createElement as h, useMemo, useState } from 'react'
+import { Fragment, createElement as h, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 
 import { KpiCards } from './components/Cards.js'
@@ -26,6 +26,10 @@ import { defaultsForModels, mergePricing } from '../shared/pricing.js'
 import { selectRange } from '../shared/range.js'
 import type { RangeSelection } from '../shared/range.js'
 import { CSS } from './styles.js'
+
+const AUTO_PRICE_SYNC_MS = 24 * 60 * 60 * 1_000
+const AUTO_PRICE_CHECK_MS = 6 * 60 * 60 * 1_000
+const AUTO_PRICE_INITIAL_DELAY_MS = 3_000
 
 export interface DashboardProps {
   onOpenSession?: ((id: string) => void) | undefined
@@ -60,6 +64,46 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   const [page, setPage] = useState<PageId>('overview')
   const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
   const [chartView, setChartView] = useState<ChartView>('io')
+  const priceModelsRef = useRef(models)
+  const onlineRef = useRef(online)
+  const onlineAtRef = useRef(onlineAt)
+  const refreshPricesRef = useRef(refreshOnline)
+  priceModelsRef.current = models
+  onlineRef.current = online
+  onlineAtRef.current = onlineAt
+  refreshPricesRef.current = refreshOnline
+  const priceModelKey = useMemo(
+    () => [...new Set(models.map(model => model.model))].sort().join('|'),
+    [models],
+  )
+
+  useEffect(() => {
+    if (priceModelsRef.current.length === 0) return
+    let stopped = false
+    let inFlight = false
+    const sync = async (): Promise<void> => {
+      if (stopped || inFlight) return
+      const current = priceModelsRef.current
+      if (current.length === 0) return
+      const names = [...new Set(current.map(model => model.model.trim().toLowerCase()).filter(name => name !== ''))]
+      const fresh = onlineAtRef.current > 0 && Date.now() - onlineAtRef.current < AUTO_PRICE_SYNC_MS
+      const missing = names.some(name => onlineRef.current[name] === undefined)
+      if (fresh && !missing) return
+      inFlight = true
+      try {
+        await refreshPricesRef.current(current, { force: false, silent: true })
+      } finally {
+        inFlight = false
+      }
+    }
+    const initial = setTimeout(() => { void sync() }, AUTO_PRICE_INITIAL_DELAY_MS)
+    const timer = setInterval(() => { void sync() }, AUTO_PRICE_CHECK_MS)
+    return () => {
+      stopped = true
+      clearTimeout(initial)
+      clearInterval(timer)
+    }
+  }, [priceModelKey])
   const rangeResult = useMemo(() => selectRange({
     days: data?.days ?? [],
     hours: data?.hours ?? [],
