@@ -21,7 +21,7 @@ import {
 import { totalTokens } from '../../shared/model.js'
 import type { ModelUsage } from '../../shared/types.js'
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 6
 
 export interface CostProps {
   models: readonly ModelUsage[]

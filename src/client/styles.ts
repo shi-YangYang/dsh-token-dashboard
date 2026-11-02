@@ -151,11 +151,8 @@ export const CSS = `
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: none;
+  overflow: hidden;
 }
-.tdb-surface--pages .tdb-page::-webkit-scrollbar { display: none; }
 .tdb-surface--pages .tdb-page > .tdb-section {
   display: flex;
   flex-direction: column;
@@ -164,7 +161,7 @@ export const CSS = `
 }
 .tdb-surface--pages .tdb-page > .tdb-section > .tdb-chart {
   flex: 1 1 auto;
-  min-height: 220px;
+  min-height: 120px;
 }
 .tdb-table-panel {
   display: block;

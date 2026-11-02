@@ -20,7 +20,7 @@ export interface ModelsProps {
   intl: string | undefined
 }
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 6
 
 export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElement {
   const [page, setPage] = useState(0)
