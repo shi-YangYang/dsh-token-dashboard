@@ -29,6 +29,27 @@ export function formatPercent(ratio: number, digits = 1): string {
   return `${rounded}%`
 }
 
+/** Average output speed; null renders as an em dash. */
+export function formatSpeed(value: number | null): string {
+  return value === null || !Number.isFinite(value) ? '—' : `≈${Math.round(value)} tok/s`
+}
+
+/** Average first-token latency; null renders as an em dash. */
+export function formatFirstToken(value: number | null): string {
+  return value === null || !Number.isFinite(value) ? '—' : `≈${(value / 1_000).toFixed(1)}s`
+}
+
+/** Local clock time (HH:mm:ss) for the request log. */
+export function formatClock(ms: number, locale?: string): string {
+  const date = new Date(ms)
+  if (!Number.isFinite(date.getTime())) return '—'
+  try {
+    return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(date)
+  } catch {
+    return date.toISOString().slice(11, 19)
+  }
+}
+
 /** Medium date + short time for timestamps. */
 export function formatDateTime(ms: number, locale?: string): string {
   const date = new Date(ms)

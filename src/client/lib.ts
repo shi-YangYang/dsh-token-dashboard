@@ -2,7 +2,7 @@
 
 import type { PricingTable } from '../shared/pricing.js'
 import { normalizePrice } from '../shared/pricing.js'
-import type { StatsPayload } from '../shared/types.js'
+import type { RequestLogPage, StatsPayload } from '../shared/types.js'
 
 /** Locale namespace registered by this plugin. */
 export const NS = 'dsh-token-dashboard'
@@ -176,6 +176,20 @@ export async function fetchOnlinePrices(models: readonly string[], force = true)
   } finally {
     clearTimeout(timer)
   }
+}
+
+/** Fetch one page of the billed request log. */
+export async function fetchRequestPage(offset: number, limit: number): Promise<RequestLogPage> {
+  const response = await fetch(endpoint('requests', { offset: String(offset), limit: String(limit) }), {
+    headers: { accept: 'application/json' },
+    cache: 'no-store',
+  })
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+  const payload: unknown = await response.json()
+  if (payload === null || typeof payload !== 'object') throw new Error('unexpected response')
+  const page = payload as Partial<RequestLogPage>
+  if (!Array.isArray(page.rows) || typeof page.total !== 'number') throw new Error('unexpected response')
+  return page as RequestLogPage
 }
 
 /** Trigger a browser download for generated text; no DOM is left behind. */

@@ -30,6 +30,26 @@ import type { RawSessionEvent, SessionHeaderLike, UsageSample } from './types.js
 const DEFAULT_KEEP_HOURS_MS = 48 * 60 * 60 * 1000
 
 /** The last usage sample not yet closed by a retry; replacement scope. */
+export interface UsageTiming {
+  /** Time from step start to the first streamed token, when derivable. */
+  firstTokenMs: number | null
+  /** Time from first streamed token to the final stream record. */
+  generationMs: number | null
+  /** Full measured request window (first token plus generation, or fallback). */
+  totalMs: number | null
+}
+
+export interface RequestSample {
+  key: string
+  time: number
+  provider: string
+  model: string
+  modelKey: string
+  buckets: TokenBuckets
+  speed: number | null
+  firstToken: number | null
+}
+
 export interface UsageSlot {
   turn: number
   step: number
@@ -38,6 +58,8 @@ export interface UsageSlot {
   provider: string
   model: string
   modelKey: string
+  timing: UsageTiming | null
+  requestKey: string
 }
 
 /** Mutable incremental state carried between folds of the same session. */
@@ -50,6 +72,7 @@ export interface FoldCarry {
   all: UsageSlot | null
   currentProvider: string
   currentModel: string
+  stepStart: { turn: number; step: number; time: number } | null
 }
 
 /** One session's derived token state. Plain JSON, no raw event content. */
@@ -66,6 +89,8 @@ export interface SessionAggregate {
   createdAt: number
   processed: number
   inheritedEventCount: number
+  /** Billed requests retained for the request log (own events only). */
+  requestSamples: RequestSample[]
   carry: FoldCarry
 }
 
@@ -92,12 +117,14 @@ export function createAggregate(header: SessionHeaderLike, inheritedEventCount: 
     createdAt,
     processed: 0,
     inheritedEventCount: Math.max(0, Math.trunc(inheritedEventCount)),
+    requestSamples: [],
     carry: {
       lastSeq: -1,
       own: null,
       all: null,
       currentProvider: '',
       currentModel: '',
+      stepStart: null,
     },
   }
 }
@@ -131,6 +158,12 @@ export function foldInto(aggregate: SessionAggregate, events: readonly RawSessio
         if (aggregate.carry.own?.turn === turn && aggregate.carry.own.step === step) aggregate.carry.own = null
         if (aggregate.carry.all?.turn === turn && aggregate.carry.all.step === step) aggregate.carry.all = null
       }
+    } else if (event.type === 'step/start') {
+      const turn = finiteNumber(data?.turn)
+      const step = finiteNumber(data?.step)
+      if (turn !== null && step !== null) {
+        aggregate.carry.stepStart = { turn, step, time }
+      }
     } else if (event.type === 'session/title') {
       const title = cleanText(data?.title)
       if (title !== '') aggregate.title = title
@@ -141,6 +174,8 @@ export function foldInto(aggregate: SessionAggregate, events: readonly RawSessio
       if (turn !== null && step !== null && usage !== undefined) {
         const buckets = bucketsOf(usage)
         const identity = identityOf(event, aggregate.carry)
+        const timing = isOwn ? readTiming(data, aggregate.carry.stepStart, turn, step, time) : null
+        const requestKey = `${event.seq}:${turn}:${step}`
         const next: UsageSlot = {
           turn,
           step,
@@ -149,6 +184,8 @@ export function foldInto(aggregate: SessionAggregate, events: readonly RawSessio
           provider: identity.provider,
           model: identity.model,
           modelKey: modelKeyOf(identity.provider, identity.model),
+          timing,
+          requestKey,
         }
 
         const previousAll = aggregate.carry.all !== null
@@ -175,12 +212,14 @@ export function foldInto(aggregate: SessionAggregate, events: readonly RawSessio
             subtractBuckets(aggregate.totals, previous.buckets)
             applyModelDelta(aggregate, previous, -1)
             applyBucketDelta(aggregate, previous, -1, now, keepHoursMs)
+            aggregate.requestSamples = aggregate.requestSamples.filter(sample => sample.key !== previous.requestKey)
           } else {
             aggregate.requests += 1
           }
           addBuckets(aggregate.totals, next.buckets)
           applyModelDelta(aggregate, next, 1)
           applyBucketDelta(aggregate, next, 1, now, keepHoursMs)
+          aggregate.requestSamples.push(requestSample(next, timing))
           aggregate.carry.own = next
         }
       }
@@ -243,6 +282,76 @@ function applyModelDelta(aggregate: SessionAggregate, slot: UsageSlot, sign: 1 |
   else subtractBuckets(row, slot.buckets)
   row.requests += sign
   if (row.requests <= 0 && totalTokens(row) <= 0) delete aggregate.models[slot.modelKey]
+}
+
+/** Derive first-token latency and generation window from recorded stream times. */
+function readTiming(
+  data: Record<string, unknown> | undefined,
+  stepStart: { turn: number; step: number; time: number } | null,
+  turn: number,
+  step: number,
+  messageTime: number,
+): UsageTiming | null {
+  let first: number | null = null
+  let last: number | null = null
+  const stream = data?.stream
+  if (Array.isArray(stream)) {
+    for (const item of stream) {
+      const record = asRecord(item)
+      if (record === undefined) continue
+      const at = finiteNumber(record.time) ?? finiteNumber(record.time0)
+      if (at !== null) {
+        first = first === null ? at : Math.min(first, at)
+        last = last === null ? at : Math.max(last, at)
+      }
+      const start = finiteNumber(record.time0)
+      if (start !== null) {
+        first = first === null ? start : Math.min(first, start)
+        const dt = Array.isArray(record.dt) ? record.dt : []
+        const elapsed = dt.reduce<number>((sum, value) => sum + (finiteNumber(value) ?? 0), 0)
+        last = last === null ? start + elapsed : Math.max(last, start + elapsed)
+      }
+    }
+  }
+
+  const started = stepStart !== null && stepStart.turn === turn && stepStart.step === step
+    ? stepStart.time
+    : null
+  let firstTokenMs: number | null = null
+  if (started !== null && first !== null && first >= started) {
+    firstTokenMs = first - started
+  }
+  let generationMs: number | null = null
+  if (first !== null && last !== null && last > first) {
+    generationMs = last - first
+  } else if (started !== null && messageTime > started) {
+    generationMs = messageTime - started
+  } else if (first !== null && messageTime > first) {
+    generationMs = messageTime - first
+  }
+  const totalMs = firstTokenMs !== null && generationMs !== null
+    ? firstTokenMs + generationMs
+    : generationMs ?? firstTokenMs
+  return firstTokenMs === null && generationMs === null
+    ? null
+    : { firstTokenMs, generationMs, totalMs }
+}
+
+function requestSample(slot: UsageSlot, timing: UsageTiming | null): RequestSample {
+  const total = timing?.totalMs ?? null
+  const speed = total !== null && total > 0 && slot.buckets.outputTokens > 0
+    ? slot.buckets.outputTokens / (total / 1_000)
+    : null
+  return {
+    key: slot.requestKey,
+    time: slot.time,
+    provider: slot.provider,
+    model: slot.model,
+    modelKey: slot.modelKey,
+    buckets: { ...slot.buckets },
+    speed,
+    firstToken: timing?.firstTokenMs ?? null,
+  }
 }
 
 function applyBucketDelta(

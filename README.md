@@ -71,6 +71,17 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 - 点击行打开右侧详情抽屉：四类 Token、请求数、命中率、创建/最近活动时间与逐模型明细
 - 宿主提供 `uiWorkspace.openSession` 时可一键跳转到该会话
 
+### 请求日志
+
+- 顶部新增 **请求日志 / Request log** 页面，按每次计费 assistant 请求展示，而不是会话/模型聚合
+- 列：时间、应用、供应商、模型、新增输入、输出、缓存命中、成本、速度、首字
+- 成本由当前价目（内置/在线/用户覆盖）即时计算；未定价显示 `—`
+- 速度 / 首字口径：
+  - **First token**：`step/start` 到该 attempt 首个 stream record 的时间；无 stream 时显示 `—`
+  - **Speed**：输出 Token / 总请求窗口（首字 + 流式生成窗口），单位 `tok/s`
+  - 只读取本地日志时间戳，不读取文本内容
+- 每页 8 行；卡片底部固定分页；不引入卡片/表格滚动条
+
 ### 实时与性能
 
 - Host 监听官方 `session/event`，新请求完成即增量折叠，不重扫历史
@@ -99,7 +110,7 @@ DSH 已经能在单个会话里显示 Token 用量，但缺少一个跨项目、
 ### 界面
 
 - 侧边栏左下角入口（Settings/个人信息上方）+ `main` 独立面板，不改动既有页面
-- 顶部页面切换：**概览 / 模型 / 会话 / 费用**，每页只呈现该功能，避免 KPI、图表和多张列表堆在一页
+- 顶部页面切换：**概览 / 模型 / 会话 / 请求日志 / 费用**，每页只呈现该功能，避免 KPI、图表和多张列表堆在一页
 - 使用 `--dsw-alias-*` 主题 Token，自动适配深色 / 浅色
 - 响应式布局：4/2/1 列 KPI、表格窄屏隐藏次要列、详情在窄屏占满宽度
 - 完整的加载中、空数据、错误、部分会话读取失败状态
@@ -162,7 +173,7 @@ plugin_manager(action: "install_bundle", target: "/绝对路径/dsh-token-dashbo
 
 ### 页面切换与分页
 
-- 顶部 tab：**概览 / 模型 / 会话 / 费用**；只渲染当前页面，tab 本身作为页面标题，页面内不再重复标题。
+- 顶部 tab：**概览 / 模型 / 会话 / 请求日志 / 费用**；只渲染当前页面，tab 本身作为页面标题，页面内不再重复标题。
 - 概览：KPI + Usage 图表。
 - 模型：模型分布表，6 个/页。
 - 会话：搜索、筛选、排序与详情，6 个/页。
@@ -297,7 +308,7 @@ src/
         Stat.tsx
     locales.ts      # 中英文字典
     styles.ts       # 主题 Token CSS
-test/               # 85 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price / scan / ui 测试
+test/               # 87 个单元 / 路由 / 渲染 / bundle 注册 / jsdom / language / price / scan / request / ui 测试
 scripts/
   build-client.mjs  # esbuild + __ModuleLoader__ 包装
   test.mjs          # tsc + node --test
@@ -433,6 +444,7 @@ cacheHitRate = cacheReadTokens
 |---|---|
 | `/dsh-token-dashboard/stats` | 完整看板 payload；`?refresh=1` 强制核对 revision |
 | `/dsh-token-dashboard/verify` | 与官方 `tokenUsage` 投影逐会话比对；`?limit=40`（上限 200） |
+| `/dsh-token-dashboard/requests` | 计费请求日志；`?offset=0&limit=24`，limit 上限 100 |
 | `/dsh-token-dashboard/prices` | 可选在线价目；`?models=a,b&refresh=1`，只返回请求模型的价格 |
 | `/dsh-token-dashboard/health` | `{ ok, apiVersion, initialized, revision }` |
 
@@ -448,7 +460,7 @@ pnpm typecheck
 pnpm test
 ```
 
-当前 85 个测试全部通过，覆盖：
+当前 87 个测试全部通过，覆盖：
 
 - 四桶求和、流式替换、retry 重开、重复 seq、零用量请求、Unknown 归因
 - 分叉继承前缀不进入自身/全局总量
@@ -456,7 +468,7 @@ pnpm test
 - revision 缓存：首次全读、未变化复用、只重读变化会话、活跃增量、活跃→持久化、读取失败保留旧值、删除会话
 - 真实源适配器：persisted/live 合并、只读 handle、tail 读取、投影 lease 释放
 - HTTP：ETag/304、`refresh=1`、Host 鉴权短路、404/405、verify 匹配与不匹配
-- 范围筛选、模型合并、内置/在线价目解析与匹配、扫描间隔持久化、费用、模型/费用/价格编辑器分页、顶部 tab 页面、自定义选择器/日期弹层、CSV 注入防护、JSON 脱敏
+- 范围筛选、模型合并、内置/在线价目解析与匹配、扫描间隔持久化、请求日志分页/速度/首字、费用、模型/费用/价格编辑器分页、顶部 tab 页面、自定义选择器/日期弹层、CSV 注入防护、JSON 脱敏
 - 中英文切换：语言映射、持久化、订阅通知、默认回退
 - 组件 SSR 渲染 + jsdom 中完整挂载、fetch、渲染、手动刷新
 - 编译后的 Client bundle 实际加载、factory 返回、footer 入口与 main 面板渲染

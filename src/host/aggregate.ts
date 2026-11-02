@@ -17,6 +17,7 @@ import {
 } from '../shared/model.js'
 import type {
   ModelUsage,
+  RequestLogPage,
   SessionReadError,
   SessionSummary,
   StatsPayload,
@@ -251,6 +252,47 @@ export class TokenAggregator {
     this.payload = payload
     this.payloadRevision = this.revision
     return payload
+  }
+
+  /** Paginated request log, newest first. */
+  requestPage(offset: number, limit: number): RequestLogPage {
+    const rows: RequestLogPage['rows'] = []
+    for (const entry of this.cache.values()) {
+      const { descriptor, aggregate } = entry
+      if (aggregate.requestSamples.length === 0) continue
+      const project = this.source.projectLabel?.(descriptor.header.cwd) ?? ''
+      const app = descriptor.header.agentPreset ?? 'DSH'
+      for (const sample of aggregate.requestSamples) {
+        rows.push({
+          id: `${descriptor.id}:${sample.key}`,
+          sessionId: descriptor.id,
+          sessionTitle: aggregate.title,
+          project,
+          app,
+          time: sample.time,
+          provider: sample.provider,
+          model: sample.model,
+          modelKey: sample.modelKey,
+          inputTokens: sample.buckets.uncachedInputTokens,
+          cacheReadTokens: sample.buckets.cacheReadTokens,
+          cacheWriteTokens: sample.buckets.cacheWriteTokens,
+          outputTokens: sample.buckets.outputTokens,
+          speed: sample.speed,
+          firstToken: sample.firstToken,
+        })
+      }
+    }
+    rows.sort((left, right) => right.time - left.time)
+    const safeOffset = Number.isFinite(offset) ? Math.max(0, Math.trunc(offset)) : 0
+    const safeLimit = Number.isFinite(limit) ? Math.max(1, Math.min(100, Math.trunc(limit))) : 24
+    return {
+      revision: this.revision,
+      total: rows.length,
+      offset: safeOffset,
+      limit: safeLimit,
+      generatedAt: this.now(),
+      rows: rows.slice(safeOffset, safeOffset + safeLimit),
+    }
   }
 
   private async doRefresh(signal?: AbortSignal): Promise<void> {

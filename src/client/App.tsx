@@ -10,6 +10,7 @@ import { ModelTable } from './components/Models.js'
 import { PricingEditor } from './components/PricingEditor.js'
 import { SessionDetail } from './components/SessionDetail.js'
 import { SessionTable } from './components/Sessions.js'
+import { RequestLog } from './components/RequestLog.js'
 import { Trends } from './components/Trends.js'
 import type { ChartView } from './components/Trends.js'
 import { PageTabs } from './components/ui/PageTabs.js'
@@ -63,6 +64,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [pricingOpen, setPricingOpen] = useState(false)
   const [page, setPage] = useState<PageId>('overview')
+  const [requestRefresh, setRequestRefresh] = useState(0)
   const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
   const [chartView, setChartView] = useState<ChartView>('io')
   const priceModelsRef = useRef(models)
@@ -119,8 +121,13 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
     { id: 'overview' as const, label: t('tabs.overview') },
     { id: 'models' as const, label: t('tabs.models') },
     { id: 'sessions' as const, label: t('tabs.sessions') },
+    { id: 'requests' as const, label: t('tabs.requests') },
     { id: 'costs' as const, label: t('tabs.costs') },
   ]
+  const refreshAll = (): void => {
+    stats.refresh()
+    setRequestRefresh(value => value + 1)
+  }
   const changePage = (next: PageId): void => {
     setPage(next)
     if (next !== 'sessions') setSelectedId(null)
@@ -132,7 +139,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
     language,
     refreshing: stats.refreshing,
     showExport,
-    onRefresh: stats.refresh,
+    onRefresh: refreshAll,
     onChangeLanguage: setLanguage,
     scanInterval,
     onScanIntervalChange: (value: ScanInterval) => {
@@ -225,7 +232,14 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
                   now,
                   onSelect: session => setSelectedId(session.id),
                 })
-                : h(CostPage, {
+                : page === 'requests'
+                  ? h(RequestLog, {
+                    pricing: effectivePricing,
+                    t,
+                    intl,
+                    refreshToken: `${data.revision}:${requestRefresh}`,
+                  })
+                  : h(CostPage, {
                   models: data.models,
                   pricing: effectivePricing,
                   t,

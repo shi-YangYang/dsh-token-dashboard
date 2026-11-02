@@ -94,6 +94,35 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   globals.fetch = (async (input: string | URL | Request) => {
     const url = String(input)
     calls.push(url)
+    if (url.includes('/requests')) {
+      return new Response(JSON.stringify({
+        revision: 1,
+        total: 1,
+        offset: 0,
+        limit: 8,
+        generatedAt: '2026-01-05T12:00:00.000Z',
+        rows: [{
+          id: 'session-1234:1:1:1',
+          sessionId: 'session-1234',
+          sessionTitle: 'Fix the parser',
+          project: 'Project A',
+          app: 'default',
+          time: now,
+          provider: 'opencode-go',
+          model: 'deepseek-v4.1-flash',
+          modelKey: 'opencode-go::deepseek-v4.1-flash',
+          inputTokens: 1_000,
+          cacheReadTokens: 2_000,
+          cacheWriteTokens: 400,
+          outputTokens: 600,
+          speed: 51,
+          firstToken: 7_400,
+        }],
+      }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    }
     if (url.includes('/prices')) {
       return new Response(JSON.stringify({
         source: 'OpenRouter',
@@ -148,7 +177,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.doesNotMatch(container.textContent ?? '', /Fix the parser/)
   assert.doesNotMatch(container.textContent ?? '', /Estimated cost/)
   assert.equal(container.querySelectorAll('.tdb-surface').length, 1)
-  assert.equal(container.querySelectorAll('.tdb-pagetab').length, 4)
+  assert.equal(container.querySelectorAll('.tdb-pagetab').length, 5)
   assert.equal(container.querySelectorAll('.tdb-kpi').length, 4)
   assert.equal(container.querySelectorAll('.tdb-section-title').length, 0)
   assert.equal(container.textContent?.includes('Lifetime'), false)
@@ -231,6 +260,14 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
     closeDrawer.click()
   })
   assert.equal(container.querySelector('.tdb-drawer'), null)
+
+  await switchTab('Request log')
+  await act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  })
+  assert.match(container.textContent ?? '', /deepseek-v4\.1-flash/)
+  assert.match(container.textContent ?? '', /7\.4s/)
+  assert.match(container.textContent ?? '', /51 tok\/s/)
 
   await switchTab('Costs')
   assert.match(container.textContent ?? '', /Estimated cost/)

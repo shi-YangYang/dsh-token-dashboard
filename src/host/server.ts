@@ -4,6 +4,7 @@
  * One same-origin, read-only prefix route:
  *   GET /dsh-token-dashboard/stats    dashboard payload (ETag, ?refresh=1)
  *   GET /dsh-token-dashboard/verify   fold vs official tokenUsage projection
+ *   GET /dsh-token-dashboard/requests paginated billed request log
  *   GET /dsh-token-dashboard/prices   optional online list prices (explicit refresh)
  *   GET /dsh-token-dashboard/health   liveness and revision
  *
@@ -74,6 +75,15 @@ export function registerDashboardRoutes(options: DashboardRoutesOptions): () => 
             return
           }
           sendJson(res, 200, payload, headOnly, { etag })
+          return
+        }
+
+        if (suffix === '/requests') {
+          if (url.searchParams.get('refresh') === '1') await options.aggregator.refresh()
+          else await options.aggregator.ensure()
+          const offset = Number(url.searchParams.get('offset') ?? '0')
+          const limit = Number(url.searchParams.get('limit') ?? '24')
+          sendJson(res, 200, options.aggregator.requestPage(offset, limit), headOnly)
           return
         }
 

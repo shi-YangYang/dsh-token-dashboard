@@ -70,6 +70,38 @@ export interface SessionSummary {
   stale: boolean
 }
 
+/** One billed request row for the request log. */
+export interface RequestRecord {
+  /** Stable row key for React and paging. */
+  id: string
+  sessionId: string
+  sessionTitle: string | null
+  project: string
+  /** Agent preset label, or a generic harness label when absent. */
+  app: string
+  time: number
+  provider: string
+  model: string
+  /** Pricing key (`provider::model`). */
+  modelKey: string
+  inputTokens: number
+  cacheReadTokens: number
+  cacheWriteTokens: number
+  outputTokens: number
+  speed: number | null
+  firstToken: number | null
+}
+
+/** One page of the request log. */
+export interface RequestLogPage {
+  revision: number
+  total: number
+  offset: number
+  limit: number
+  generatedAt: number
+  rows: RequestRecord[]
+}
+
 /** One failed session read. Only an id and a stable reason code are exposed. */
 export interface SessionReadError {
   sessionId: string

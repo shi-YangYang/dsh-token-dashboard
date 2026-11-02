@@ -270,3 +270,23 @@ test('malformed usage values degrade to zero instead of NaN or negative totals',
     outputTokens: 0,
   })
 })
+
+test('derives output speed and first-token latency from stream times', () => {
+  const aggregate = foldSession(header(), [
+    requestHeader(0, 'provider-a', 'model-a'),
+    ev('step/start', 1, T0 + 1_000, { turn: 1, step: 1 }),
+    assistantMessage(2, 1, 1, {
+      time: T0 + 2_000,
+      usage: usage({ outputTokens: 100 }),
+      stream: [
+        { type: 'chunk', time: T0 + 1_200, chunk: { type: 'block-start' } },
+        { type: 'text-chunks', time0: T0 + 1_220, dt: [10, 10], index: 0, texts: ['x'] },
+        { type: 'chunk', time: T0 + 2_000, chunk: { type: 'finish' } },
+      ],
+    }),
+  ], 0, { now: NOW })
+
+  assert.equal(aggregate.requestSamples.length, 1)
+  assert.equal(aggregate.requestSamples[0]?.speed, 100)
+  assert.equal(aggregate.requestSamples[0]?.firstToken, 200)
+})

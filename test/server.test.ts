@@ -142,6 +142,25 @@ test('the price proxy delegates requested models with an explicit refresh', asyn
   assert.equal(JSON.parse(res.body).prices['deepseek-flash'].input, 0.3)
 })
 
+test('the request log route returns paginated billed rows', async () => {
+  const source = createSource()
+  const aggregator = new TokenAggregator(source, { now: () => T0 + 1_000 })
+  const server = new FakeServer()
+  registerDashboardRoutes({ server, aggregator, source })
+
+  const res = await call(server, request('/dsh-token-dashboard/requests?offset=0&limit=8'))
+  assert.equal(res.statusCode, 200)
+  const page = JSON.parse(res.body) as {
+    total: number
+    rows: Array<Record<string, unknown>>
+  }
+  assert.equal(page.total, 1)
+  assert.equal(page.rows.length, 1)
+  assert.equal(page.rows[0]?.model, 'model-a')
+  assert.equal(page.rows[0]?.outputTokens, 7)
+  assert.equal(res.body.includes('assistant text'), false)
+})
+
 test('a matching If-None-Match answers 304 with no body', async () => {
   const source = createSource()
   const aggregator = new TokenAggregator(source, { now: () => T0 + 1_000 })

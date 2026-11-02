@@ -3,7 +3,7 @@
 import { createElement as h } from 'react'
 import type { ReactElement } from 'react'
 
-export type PageId = 'overview' | 'models' | 'sessions' | 'costs'
+export type PageId = 'overview' | 'models' | 'sessions' | 'requests' | 'costs'
 
 export interface PageTab {
   id: PageId
