@@ -52,7 +52,6 @@ export function DashboardHeader({
           onClick: () => onChangeLanguage('en'),
         }, 'EN')),
       h('div', { className: 'tdb-scan-top' },
-        h('span', { className: 'tdb-scan-prefix' }, t('scan.prefix')),
         h(Select, {
           value: scanInterval,
           options: SCAN_INTERVALS.map(value => ({ value, label: t(`scan.${value}`) })),

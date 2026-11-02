@@ -143,7 +143,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.equal(calls.length > 0, true)
   assert.match(calls[0] ?? '', /dsh-token-dashboard\/stats/)
   assert.match(container.textContent ?? '', /Total tokens/)
-  assert.match(container.textContent ?? '', /Scan every/)
+  assert.match(container.textContent ?? '', /Every 5s/)
   assert.match(container.textContent ?? '', /5s/)
   assert.doesNotMatch(container.textContent ?? '', /Fix the parser/)
   assert.doesNotMatch(container.textContent ?? '', /Estimated cost/)
