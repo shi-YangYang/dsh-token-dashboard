@@ -167,18 +167,19 @@ export const CSS = `
   min-height: 220px;
 }
 .tdb-table-panel {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
+  display: block;
 }
 .tdb-table-panel > .tdb-table-wrap {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: none;
+  overflow: visible;
 }
-.tdb-table-panel > .tdb-table-wrap::-webkit-scrollbar { display: none; }
+.tdb-table-panel .tdb-table {
+  table-layout: fixed;
+}
+.tdb-table-panel .tdb-table th,
+.tdb-table-panel .tdb-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .tdb-table-panel .tdb-table thead th {
   position: sticky;
   top: 0;
@@ -186,7 +187,6 @@ export const CSS = `
   background: var(--tdb-surface);
   box-shadow: inset 0 -1px 0 var(--tdb-line);
 }
-.tdb-table-panel > .tdb-pager { flex: 0 0 auto; }
 .tdb-cost-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .tdb-cost-summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .tdb-cost-summary-main { min-width: 0; }
@@ -397,12 +397,12 @@ export const CSS = `
 .tdb-model-provider { font-size: 11px; color: var(--tdb-ink-2); margin-top: 1px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tdb-model-unknown { color: var(--tdb-ink-2); font-style: italic; }
 
-.tdb-share { display: flex; align-items: center; gap: 8px; min-width: 100px; }
+.tdb-share { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .tdb-share-track { flex: 1; height: 4px; border-radius: 2px; background: var(--tdb-surface-2); overflow: hidden; }
 .tdb-share-fill { height: 100%; border-radius: 2px; background: var(--tdb-cat-input); }
 .tdb-share-text { flex: 0 0 auto; width: 38px; text-align: right; font-size: 11px; color: var(--tdb-ink-2); font-variant-numeric: tabular-nums; }
 
-.tdb-session-cell { min-width: 220px; }
+.tdb-session-cell { min-width: 0; }
 .tdb-session-model { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tdb-nowrap { white-space: nowrap; }
 .tdb-session-title { font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 340px; }

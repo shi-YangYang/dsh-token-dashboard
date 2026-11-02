@@ -76,7 +76,6 @@ export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElemen
       header: t('models.share'),
       headerClassName: 'tdb-hide-sm',
       cellClassName: 'tdb-hide-sm',
-      style: { minWidth: '100px' },
       render: model => {
         const share = total <= 0 ? 0 : totalTokens(model) / total
         return h(ShareBar, { ratio: share, label: formatPercent(share) })
