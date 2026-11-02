@@ -143,6 +143,8 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.equal(calls.length > 0, true)
   assert.match(calls[0] ?? '', /dsh-token-dashboard\/stats/)
   assert.match(container.textContent ?? '', /Total tokens/)
+  assert.match(container.textContent ?? '', /Scan every/)
+  assert.match(container.textContent ?? '', /5s/)
   assert.doesNotMatch(container.textContent ?? '', /Fix the parser/)
   assert.doesNotMatch(container.textContent ?? '', /Estimated cost/)
   assert.equal(container.querySelectorAll('.tdb-surface').length, 1)
@@ -187,7 +189,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   })
   assert.equal(ioView.getAttribute('aria-pressed'), 'true')
 
-  const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Refresh"]')
+  const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Sync now"]')
   assert.ok(refresh, 'refresh button is present')
   await act(async () => {
     refresh.click()
@@ -232,8 +234,6 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
 
   await switchTab('Costs')
   assert.match(container.textContent ?? '', /Estimated cost/)
-  assert.match(container.textContent ?? '', /Auto sync/)
-  assert.match(container.textContent ?? '', /6 hours/)
   assert.match(container.textContent ?? '', /\$0\.001032/)
   assert.match(container.textContent ?? '', /Built-in/)
   assert.equal(container.textContent?.includes('No prices set'), false)

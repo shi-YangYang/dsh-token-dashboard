@@ -9,7 +9,7 @@ import { Select } from './ui/Select.js'
 import { RefreshIcon } from '../icons.js'
 import type { T } from '../lib.js'
 import type { Language } from '../language.js'
-import { SYNC_INTERVALS, type SyncInterval } from '../sync.js'
+import { SCAN_INTERVALS, type ScanInterval } from '../scan.js'
 import type { StatsPayload } from '../../shared/types.js'
 
 export interface DashboardHeaderProps {
@@ -20,8 +20,8 @@ export interface DashboardHeaderProps {
   showExport: boolean
   onRefresh: () => void
   onChangeLanguage: (language: Language) => void
-  syncInterval: SyncInterval
-  onSyncIntervalChange: (value: SyncInterval) => void
+  scanInterval: ScanInterval
+  onScanIntervalChange: (value: ScanInterval) => void
 }
 
 export function DashboardHeader({
@@ -32,8 +32,8 @@ export function DashboardHeader({
   showExport,
   onRefresh,
   onChangeLanguage,
-  syncInterval,
-  onSyncIntervalChange,
+  scanInterval,
+  onScanIntervalChange,
 }: DashboardHeaderProps): ReactElement {
   return h('header', { className: 'tdb-head' },
     h('h1', { className: 'tdb-title' }, t('panel.title')),
@@ -51,22 +51,25 @@ export function DashboardHeader({
           'aria-pressed': language === 'en',
           onClick: () => onChangeLanguage('en'),
         }, 'EN')),
-      h('div', { className: 'tdb-sync-top' },
-        h('span', { className: 'tdb-sync-top-label' }, t('sync.label')),
+      h('div', { className: 'tdb-scan-top' },
+        h('span', { className: 'tdb-scan-prefix' }, t('scan.prefix')),
         h(Select, {
-          value: syncInterval,
-          options: SYNC_INTERVALS.map(value => ({ value, label: t(`sync.${value}`) })),
-          onChange: value => onSyncIntervalChange(value as SyncInterval),
-          ariaLabel: t('sync.label'),
-          className: 'tdb-sync-top-select',
-        })),
+          value: scanInterval,
+          options: SCAN_INTERVALS.map(value => ({ value, label: t(`scan.${value}`) })),
+          onChange: value => onScanIntervalChange(value as ScanInterval),
+          ariaLabel: t('scan.label'),
+          className: 'tdb-scan-top-select',
+        }),
+        t('scan.suffix') === ''
+          ? null
+          : h('span', { className: 'tdb-scan-suffix' }, t('scan.suffix'))),
       h(Button, {
         variant: 'ghost',
-        iconOnly: true,
         onClick: onRefresh,
         busy: refreshing,
-        'aria-label': t('actions.refresh'),
-        title: t('actions.refresh'),
-      }, h('span', { className: refreshing ? 'tdb-spin' : '' }, h(RefreshIcon, { size: 16 }))),
+        'aria-label': t('actions.syncNow'),
+        title: t('actions.syncNow'),
+      }, h('span', { className: refreshing ? 'tdb-spin' : '' }, h(RefreshIcon, { size: 15 })),
+        h('span', { className: 'tdb-sync-now-label' }, t('actions.syncNow'))),
       showExport && data !== null ? h(ExportMenu, { data, t }) : null))
 }

@@ -25,9 +25,10 @@ import { totalTokens } from '../shared/model.js'
 import { defaultsForModels, mergePricing } from '../shared/pricing.js'
 import { selectRange } from '../shared/range.js'
 import type { RangeSelection } from '../shared/range.js'
-import { SYNC_INTERVAL_MS, readSyncInterval, saveSyncInterval, type SyncInterval } from './sync.js'
+import { SCAN_INTERVAL_MS, readScanInterval, saveScanInterval, type ScanInterval } from './scan.js'
 import { CSS } from './styles.js'
 
+const AUTO_PRICE_SYNC_MS = 6 * 60 * 60 * 1_000
 const AUTO_PRICE_INITIAL_DELAY_MS = 3_000
 
 export interface DashboardProps {
@@ -42,7 +43,8 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   )
   const intl = language === 'zh' ? 'zh-CN' : 'en-US'
   const now = useNow(60_000)
-  const stats = useStats()
+  const [scanInterval, setScanInterval] = useState<ScanInterval>(readScanInterval)
+  const stats = useStats(SCAN_INTERVAL_MS[scanInterval])
   const data = stats.data
   const {
     pricing,
@@ -63,7 +65,6 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   const [page, setPage] = useState<PageId>('overview')
   const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
   const [chartView, setChartView] = useState<ChartView>('io')
-  const [syncInterval, setSyncInterval] = useState<SyncInterval>(readSyncInterval)
   const priceModelsRef = useRef(models)
   const onlineRef = useRef(online)
   const onlineAtRef = useRef(onlineAt)
@@ -78,8 +79,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   )
 
   useEffect(() => {
-    const intervalMs = SYNC_INTERVAL_MS[syncInterval]
-    if (intervalMs <= 0 || priceModelsRef.current.length === 0) return
+    if (priceModelsRef.current.length === 0) return
     let stopped = false
     let inFlight = false
     const sync = async (): Promise<void> => {
@@ -87,7 +87,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
       const current = priceModelsRef.current
       if (current.length === 0) return
       const names = [...new Set(current.map(model => model.model.trim().toLowerCase()).filter(name => name !== ''))]
-      const fresh = onlineAtRef.current > 0 && Date.now() - onlineAtRef.current < intervalMs
+      const fresh = onlineAtRef.current > 0 && Date.now() - onlineAtRef.current < AUTO_PRICE_SYNC_MS
       const missing = names.some(name => onlineRef.current[name] === undefined)
       if (fresh && !missing) return
       inFlight = true
@@ -98,13 +98,13 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
       }
     }
     const initial = setTimeout(() => { void sync() }, AUTO_PRICE_INITIAL_DELAY_MS)
-    const timer = setInterval(() => { void sync() }, intervalMs)
+    const timer = setInterval(() => { void sync() }, AUTO_PRICE_SYNC_MS)
     return () => {
       stopped = true
       clearTimeout(initial)
       clearInterval(timer)
     }
-  }, [priceModelKey, syncInterval])
+  }, [priceModelKey])
   const rangeResult = useMemo(() => selectRange({
     days: data?.days ?? [],
     hours: data?.hours ?? [],
@@ -134,10 +134,10 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
     showExport,
     onRefresh: stats.refresh,
     onChangeLanguage: setLanguage,
-    syncInterval,
-    onSyncIntervalChange: (value: SyncInterval) => {
-      setSyncInterval(value)
-      saveSyncInterval(value)
+    scanInterval,
+    onScanIntervalChange: (value: ScanInterval) => {
+      setScanInterval(value)
+      saveScanInterval(value)
     },
   })
 
@@ -236,7 +236,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
                   priceError: onlineError,
                   onRefreshPrices: () => { void refreshOnline(data.models) },
                   onConfigure: () => setPricingOpen(true),
-                  autoSync: syncInterval !== 'off',
+                  autoSync: true,
                 }))))),
     h(SessionDetail, {
       session: selected,

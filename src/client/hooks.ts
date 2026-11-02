@@ -116,7 +116,7 @@ export interface StatsController {
  * Polling sends the previous ETag, so an unchanged Host revision costs one 304
  * with no body. A hidden tab polls nothing.
  */
-export function useStats(): StatsController {
+export function useStats(intervalMs: number = POLL_INTERVAL_MS): StatsController {
   const [data, setData] = useState<StatsPayload | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -163,7 +163,7 @@ export function useStats(): StatsController {
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
       void load('poll')
     }
-    const timer = setInterval(tick, POLL_INTERVAL_MS)
+    const timer = setInterval(tick, intervalMs)
     const onVisibility = (): void => {
       if (typeof document !== 'undefined' && document.visibilityState === 'visible') tick()
     }
@@ -173,7 +173,7 @@ export function useStats(): StatsController {
       document.removeEventListener('visibilitychange', onVisibility)
       inflight.current?.abort()
     }
-  }, [load])
+  }, [load, intervalMs])
 
   const refresh = useCallback((): void => {
     void load('manual')
