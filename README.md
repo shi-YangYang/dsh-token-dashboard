@@ -82,7 +82,7 @@ Updating Host code requires a DSH restart; Client-only changes need a page refre
 | **Overview** | Global KPIs and a Usage chart across the selected range |
 | **Models** | Token distribution and request counts by provider/model |
 | **Sessions** | Search, filters, sorting, pagination, and per-session detail |
-| **Request log** | Individual billed requests, 8 per page, newest first |
+| **Request log** | Individual billed requests, auto-sized to fill the card, newest first |
 | **Costs** | Estimated spend, per-model breakdown, pricing overrides, and online price refresh |
 
 The header provides the language switch, scan interval, **Sync now**, and export. Scan interval controls local session polling: **5 / 10 / 30 / 60 seconds**.

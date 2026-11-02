@@ -12,9 +12,8 @@ import type { T } from '../lib.js'
 import { formatClock, formatFirstToken, formatNumber, formatSpeed } from '../../shared/format.js'
 import { costOf, type PricingTable } from '../../shared/pricing.js'
 import { fetchRequestPage } from '../lib.js'
+import { useElementSize } from '../hooks.js'
 import type { RequestLogPage, RequestRecord } from '../../shared/types.js'
-
-const PAGE_SIZE = 8
 
 export interface RequestLogProps {
   pricing: PricingTable
@@ -25,20 +24,26 @@ export interface RequestLogProps {
 
 export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps): ReactElement {
   const [page, setPage] = useState(0)
+  const [limit, setLimit] = useState(8)
   const [data, setData] = useState<RequestLogPage | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [panelRef, panelSize] = useElementSize<HTMLDivElement>()
+
+  useEffect(() => {
+    setPage(0)
+  }, [limit])
 
   useEffect(() => {
     let stopped = false
     setLoading(true)
     setFailed(false)
-    fetchRequestPage(page * PAGE_SIZE, PAGE_SIZE)
+    fetchRequestPage(page * limit, limit)
       .then(result => {
         if (stopped) return
         setData(result)
         setLoading(false)
-        const last = Math.max(0, Math.ceil(result.total / PAGE_SIZE) - 1)
+        const last = Math.max(0, Math.ceil(result.total / limit) - 1)
         if (page > last) setPage(last)
       })
       .catch(() => {
@@ -47,10 +52,24 @@ export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps):
         setLoading(false)
       })
     return () => { stopped = true }
-  }, [page, refreshToken])
+  }, [page, limit, refreshToken])
+
+  useEffect(() => {
+    const panel = panelRef.current
+    if (panel === null || panelSize.height <= 0 || data === null) return
+    const row = panel.querySelector<HTMLTableRowElement>('tbody tr')
+    const head = panel.querySelector<HTMLTableSectionElement>('thead')
+    const pager = panel.querySelector<HTMLElement>('.tdb-pager')
+    if (row === null || head === null || pager === null) return
+    const rowHeight = row.getBoundingClientRect().height
+    const reserved = head.getBoundingClientRect().height + pager.getBoundingClientRect().height + 8
+    if (rowHeight <= 0) return
+    const next = Math.max(8, Math.min(30, Math.floor((panelSize.height - reserved) / rowHeight) - 1))
+    setLimit(current => current === next ? current : next)
+  }, [panelRef, panelSize.height, data, limit])
 
   const total = data?.total ?? 0
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const pages = Math.max(1, Math.ceil(total / limit))
   const current = Math.min(page, pages - 1)
 
   if (loading && data === null) {
@@ -70,7 +89,7 @@ export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps):
 
   const rows = data?.rows ?? []
   return h(Section, { ariaLabel: t('tabs.requests') },
-    h('div', { className: 'tdb-table-panel' },
+    h('div', { ref: panelRef, className: 'tdb-table-panel' },
       h(DataTable<RequestRecord>, {
         rows,
         columns: requestColumns(pricing, t, intl),
