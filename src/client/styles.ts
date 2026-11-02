@@ -170,10 +170,11 @@ export const CSS = `
   min-height: 0;
 }
 .tdb-table-panel > .tdb-table-wrap {
-  flex: 0 1 auto;
-  overflow: visible;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
-.tdb-table-panel > .tdb-pager { margin-top: auto; }
+.tdb-table-panel > .tdb-pager { flex: 0 0 auto; }
 .tdb-table-panel .tdb-table {
   table-layout: fixed;
 }

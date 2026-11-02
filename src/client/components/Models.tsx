@@ -23,7 +23,7 @@ export interface ModelsProps {
 
 
 export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElement {
-  const [setPanel, pageSize] = useAutoPageSize({ initial: 8, min: 8, max: 40 })
+  const [setPanel, pageSize] = useAutoPageSize({ initial: 8, min: 8, max: 24 })
   const [page, setPage] = useState(0)
   const pages = Math.max(1, Math.ceil(models.length / pageSize))
   const current = Math.min(page, pages - 1)

@@ -23,7 +23,7 @@ export interface RequestLogProps {
 }
 
 export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps): ReactElement {
-  const [setPanel, limit] = useAutoPageSize({ initial: 12, min: 12, max: 40 })
+  const [setPanel, limit] = useAutoPageSize({ initial: 12, min: 12, max: 24 })
   const [page, setPage] = useState(0)
   const [data, setData] = useState<RequestLogPage | null>(null)
   const [loading, setLoading] = useState(true)
