@@ -89,7 +89,8 @@ export function useAutoPageSize(options: {
       const pagerHeight = pager?.getBoundingClientRect().height ?? 0
       if (rowHeight <= 0) return
       const available = panel.getBoundingClientRect().height - headHeight - pagerHeight - 8
-      const next = Math.max(min, Math.min(max, Math.floor(available / rowHeight) - 1))
+      if (available <= 0) return
+      const next = Math.max(min, Math.min(max, Math.floor(available / rowHeight)))
       setSize(current => current === next ? current : next)
     }
     update()

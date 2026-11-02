@@ -28,7 +28,7 @@ export interface SessionsProps {
 }
 
 export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): ReactElement {
-  const [setPanel, pageSize] = useAutoPageSize({ initial: 6, min: 3, max: 20 })
+  const [setPanel, pageSize] = useAutoPageSize({ initial: 8, min: 8, max: 40 })
   const [query, setQuery] = useState('')
   const [project, setProject] = useState('')
   const [model, setModel] = useState('')
