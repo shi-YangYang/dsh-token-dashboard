@@ -1,6 +1,6 @@
 /** Session table: search, two filters, sortable time/total columns. */
 
-import { createElement as h, useMemo, useState } from 'react'
+import { Fragment, createElement as h, useMemo, useState } from 'react'
 import type { ChangeEvent, ReactElement } from 'react'
 
 import { Button, EmptyState, Tag } from './common.js'
@@ -185,7 +185,7 @@ export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): R
   return h(Section, { ariaLabel: t('sessions.title') },
     rows.length === 0
       ? body
-      : h('div', {},
+      : h(Fragment, {},
         h('div', { className: 'tdb-filters' },
           h('div', { className: 'tdb-search' },
             h(SearchIcon, { size: 14 }),
