@@ -65,6 +65,43 @@ export function useNow(intervalMs = 30_000): number {
   return now
 }
 
+/** Measure a table panel and choose rows per page to fill it without scrolling. */
+export function useAutoPageSize(options: {
+  initial?: number
+  min?: number
+  max?: number
+} = {}): [(node: HTMLElement | null) => void, number] {
+  const initial = Math.max(1, Math.trunc(options.initial ?? 6))
+  const min = Math.max(1, Math.trunc(options.min ?? 3))
+  const max = Math.max(min, Math.trunc(options.max ?? 20))
+  const [panel, setPanel] = useState<HTMLElement | null>(null)
+  const [size, setSize] = useState(initial)
+
+  useEffect(() => {
+    if (panel === null) return
+    const update = (): void => {
+      const row = panel.querySelector<HTMLTableRowElement>('tbody tr')
+      const head = panel.querySelector<HTMLTableSectionElement>('thead')
+      const pager = panel.querySelector<HTMLElement>('.tdb-pager')
+      if (row === null || head === null) return
+      const rowHeight = row.getBoundingClientRect().height
+      const headHeight = head.getBoundingClientRect().height
+      const pagerHeight = pager?.getBoundingClientRect().height ?? 0
+      if (rowHeight <= 0) return
+      const available = panel.getBoundingClientRect().height - headHeight - pagerHeight - 8
+      const next = Math.max(min, Math.min(max, Math.floor(available / rowHeight) - 1))
+      setSize(current => current === next ? current : next)
+    }
+    update()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(update)
+    observer.observe(panel)
+    return () => observer.disconnect()
+  }, [panel, min, max])
+
+  return [setPanel, size]
+}
+
 /** Keep the latest locale snapshot without assuming a cached getSnapshot. */
 export function useLocaleSnapshot(locale: LocaleLike): LocaleSnapshot {
   const [snapshot, setSnapshot] = useState<LocaleSnapshot>(() => {

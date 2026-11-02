@@ -12,6 +12,7 @@ import type { T } from '../lib.js'
 import { formatClock, formatFirstToken, formatNumber, formatSpeed } from '../../shared/format.js'
 import { costOf, type PricingTable } from '../../shared/pricing.js'
 import { fetchRequestPage } from '../lib.js'
+import { useAutoPageSize } from '../hooks.js'
 import type { RequestLogPage, RequestRecord } from '../../shared/types.js'
 
 export interface RequestLogProps {
@@ -22,27 +23,15 @@ export interface RequestLogProps {
 }
 
 export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps): ReactElement {
+  const [setPanel, limit] = useAutoPageSize({ initial: 12, min: 8, max: 30 })
   const [page, setPage] = useState(0)
-  const [limit, setLimit] = useState(12)
   const [data, setData] = useState<RequestLogPage | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
-  const [panel, setPanel] = useState<HTMLDivElement | null>(null)
-  const [panelHeight, setPanelHeight] = useState(0)
 
   useEffect(() => {
     setPage(0)
   }, [limit])
-
-  useEffect(() => {
-    if (panel === null) return
-    const update = (): void => setPanelHeight(panel.getBoundingClientRect().height)
-    update()
-    if (typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(update)
-    observer.observe(panel)
-    return () => observer.disconnect()
-  }, [panel])
 
   useEffect(() => {
     let stopped = false
@@ -63,19 +52,6 @@ export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps):
       })
     return () => { stopped = true }
   }, [page, limit, refreshToken])
-
-  useEffect(() => {
-    if (panel === null || panelHeight <= 0 || data === null) return
-    const row = panel.querySelector<HTMLTableRowElement>('tbody tr')
-    const head = panel.querySelector<HTMLTableSectionElement>('thead')
-    const pager = panel.querySelector<HTMLElement>('.tdb-pager')
-    if (row === null || head === null || pager === null) return
-    const rowHeight = row.getBoundingClientRect().height
-    const reserved = head.getBoundingClientRect().height + pager.getBoundingClientRect().height + 8
-    if (rowHeight <= 0) return
-    const next = Math.max(8, Math.min(30, Math.floor((panelHeight - reserved) / rowHeight) - 1))
-    setLimit(current => current === next ? current : next)
-  }, [panel, panelHeight, data, limit])
 
   const total = data?.total ?? 0
   const pages = Math.max(1, Math.ceil(total / limit))

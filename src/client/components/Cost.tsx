@@ -7,6 +7,7 @@ import { Button, EmptyState } from './common.js'
 import { ChartIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
 import { Section } from './ui/Section.js'
 import { DataTable } from './ui/DataTable.js'
+import { useAutoPageSize } from '../hooks.js'
 import type { DataColumn } from './ui/DataTable.js'
 import type { T } from '../lib.js'
 import { formatDateTime, formatNumber } from '../../shared/format.js'
@@ -21,7 +22,6 @@ import {
 import { totalTokens } from '../../shared/model.js'
 import type { ModelUsage } from '../../shared/types.js'
 
-const PAGE_SIZE = 6
 
 export interface CostProps {
   models: readonly ModelUsage[]
@@ -140,12 +140,13 @@ function CostTable({ rows, t, intl }: {
   t: T
   intl: string | undefined
 }): ReactElement {
+  const [setPanel, pageSize] = useAutoPageSize({ initial: 6, min: 3, max: 20 })
   const [page, setPage] = useState(0)
-  const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
+  const pages = Math.max(1, Math.ceil(rows.length / pageSize))
   const current = Math.min(page, pages - 1)
-  const visible = rows.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
+  const visible = rows.slice(current * pageSize, current * pageSize + pageSize)
 
-  return h('div', { className: 'tdb-table-panel' },
+  return h('div', { ref: setPanel, className: 'tdb-table-panel' },
     h(DataTable<ModelCostRow>, {
       rows: visible,
       columns: costColumns(t, intl),

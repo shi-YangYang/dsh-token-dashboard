@@ -8,13 +8,13 @@ import { Select } from './ui/Select.js'
 import { ChevronLeftIcon, ChevronRightIcon, DatabaseIcon, SearchIcon } from '../icons.js'
 import { Section } from './ui/Section.js'
 import { DataTable } from './ui/DataTable.js'
+import { useAutoPageSize } from '../hooks.js'
 import type { DataColumn } from './ui/DataTable.js'
 import type { T } from '../lib.js'
 import { formatDateTime, formatNumber, formatRelative } from '../../shared/format.js'
 import { totalTokens } from '../../shared/model.js'
 import type { SessionSummary } from '../../shared/types.js'
 
-const PAGE_SIZE = 6
 
 type SortKey = 'last' | 'total'
 type SortDir = 'asc' | 'desc'
@@ -28,6 +28,7 @@ export interface SessionsProps {
 }
 
 export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): ReactElement {
+  const [setPanel, pageSize] = useAutoPageSize({ initial: 6, min: 3, max: 20 })
   const [query, setQuery] = useState('')
   const [project, setProject] = useState('')
   const [model, setModel] = useState('')
@@ -74,9 +75,9 @@ export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): R
     })
   }, [rows, query, project, model, sortKey, sortDir])
 
-  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const pages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const current = Math.min(page, pages - 1)
-  const visible = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE)
+  const visible = filtered.slice(current * pageSize, current * pageSize + pageSize)
 
   const resetPage = (): void => setPage(0)
 
@@ -154,7 +155,7 @@ export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): R
     ? h(EmptyState, { icon: h(DatabaseIcon, { size: 20 }), title: t('sessions.empty') })
     : filtered.length === 0
       ? h(EmptyState, { icon: h(SearchIcon, { size: 20 }), title: t('sessions.emptyFiltered') })
-      : h('div', { className: 'tdb-table-panel' },
+      : h('div', { ref: setPanel, className: 'tdb-table-panel' },
         h(DataTable<SessionSummary>, {
           rows: visible,
           columns,
