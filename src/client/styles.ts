@@ -164,11 +164,16 @@ export const CSS = `
   min-height: 120px;
 }
 .tdb-table-panel {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 .tdb-table-panel > .tdb-table-wrap {
+  flex: 0 1 auto;
   overflow: visible;
 }
+.tdb-table-panel > .tdb-pager { margin-top: auto; }
 .tdb-table-panel .tdb-table {
   table-layout: fixed;
 }
