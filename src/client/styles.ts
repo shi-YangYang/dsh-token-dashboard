@@ -175,6 +175,7 @@ export const CSS = `
   overflow: hidden;
 }
 .tdb-table-panel > .tdb-pager { flex: 0 0 auto; }
+.tdb-table-panel > .tdb-table-wrap > .tdb-table { height: 100%; }
 .tdb-table-panel .tdb-table {
   table-layout: fixed;
 }

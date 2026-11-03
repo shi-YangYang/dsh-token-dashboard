@@ -7,10 +7,10 @@ import { Button, EmptyState, ShareBar } from './common.js'
 import { ChartIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
 import { Section } from './ui/Section.js'
 import { DataTable } from './ui/DataTable.js'
-import { useAutoPageSize } from '../hooks.js'
 import type { DataColumn } from './ui/DataTable.js'
 import type { T } from '../lib.js'
 import { formatNumber, formatPercent } from '../../shared/format.js'
+import { TABLE_PAGE_SIZE } from '../table.js'
 import { cacheTokens, totalTokens } from '../../shared/model.js'
 import type { ModelUsage } from '../../shared/types.js'
 
@@ -23,7 +23,7 @@ export interface ModelsProps {
 
 
 export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElement {
-  const [setPanel, pageSize] = useAutoPageSize({ initial: 8, min: 8, max: 24 })
+  const pageSize = TABLE_PAGE_SIZE
   const [page, setPage] = useState(0)
   const pages = Math.max(1, Math.ceil(models.length / pageSize))
   const current = Math.min(page, pages - 1)
@@ -87,7 +87,7 @@ export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElemen
   return h(Section, { ariaLabel: t('models.title') },
     models.length === 0
       ? h(EmptyState, { icon: h(ChartIcon, { size: 20 }), title: t('models.empty') })
-      : h('div', { ref: setPanel, className: 'tdb-table-panel' },
+      : h('div', { className: 'tdb-table-panel' },
         h(DataTable<ModelUsage>, {
           rows: visible,
           columns,

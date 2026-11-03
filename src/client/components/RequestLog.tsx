@@ -12,7 +12,7 @@ import type { T } from '../lib.js'
 import { formatClock, formatFirstToken, formatNumber, formatSpeed } from '../../shared/format.js'
 import { costOf, type PricingTable } from '../../shared/pricing.js'
 import { fetchRequestPage } from '../lib.js'
-import { useAutoPageSize } from '../hooks.js'
+import { TABLE_PAGE_SIZE } from '../table.js'
 import type { RequestLogPage, RequestRecord } from '../../shared/types.js'
 
 export interface RequestLogProps {
@@ -23,26 +23,21 @@ export interface RequestLogProps {
 }
 
 export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps): ReactElement {
-  const [setPanel, limit] = useAutoPageSize({ initial: 12, min: 12, max: 24 })
   const [page, setPage] = useState(0)
   const [data, setData] = useState<RequestLogPage | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
-    setPage(0)
-  }, [limit])
-
-  useEffect(() => {
     let stopped = false
     setLoading(true)
     setFailed(false)
-    fetchRequestPage(page * limit, limit)
+    fetchRequestPage(page * TABLE_PAGE_SIZE, TABLE_PAGE_SIZE)
       .then(result => {
         if (stopped) return
         setData(result)
         setLoading(false)
-        const last = Math.max(0, Math.ceil(result.total / limit) - 1)
+        const last = Math.max(0, Math.ceil(result.total / TABLE_PAGE_SIZE) - 1)
         if (page > last) setPage(last)
       })
       .catch(() => {
@@ -51,10 +46,10 @@ export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps):
         setLoading(false)
       })
     return () => { stopped = true }
-  }, [page, limit, refreshToken])
+  }, [page, refreshToken])
 
   const total = data?.total ?? 0
-  const pages = Math.max(1, Math.ceil(total / limit))
+  const pages = Math.max(1, Math.ceil(total / TABLE_PAGE_SIZE))
   const current = Math.min(page, pages - 1)
 
   if (loading && data === null) {
@@ -74,7 +69,7 @@ export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps):
 
   const rows = data?.rows ?? []
   return h(Section, { ariaLabel: t('tabs.requests') },
-    h('div', { ref: setPanel, className: 'tdb-table-panel' },
+    h('div', { className: 'tdb-table-panel' },
       h(DataTable<RequestRecord>, {
         rows,
         columns: requestColumns(pricing, t, intl),

@@ -260,7 +260,7 @@ test('the pricing editor renders one editable row per model', () => {
 })
 
 test('the model table paginates a long model list', () => {
-  const many = Array.from({ length: 11 }, (_, index): ModelUsage => ({
+  const many = Array.from({ length: 13 }, (_, index): ModelUsage => ({
     ...model,
     key: `p::m-${index}`,
     model: `model-${index}`,
@@ -273,11 +273,11 @@ test('the model table paginates a long model list', () => {
   }))
   assert.match(markup, /1 \/ 2/)
   assert.match(markup, /model-0/)
-  assert.doesNotMatch(markup, /model-10/)
+  assert.doesNotMatch(markup, /model-12/)
 })
 
 test('the cost page paginates model rows', () => {
-  const many = Array.from({ length: 9 }, (_, index): ModelUsage => ({
+  const many = Array.from({ length: 13 }, (_, index): ModelUsage => ({
     ...model,
     key: `p::cost-${index}`,
     model: `cost-${index}`,
@@ -300,7 +300,7 @@ test('the cost page paginates model rows', () => {
   }))
   assert.match(markup, /1 \/ 2/)
   assert.match(markup, /cost-0/)
-  assert.doesNotMatch(markup, /cost-8/)
+  assert.doesNotMatch(markup, /cost-12/)
 })
 
 test('the pricing editor paginates a long model list', () => {
