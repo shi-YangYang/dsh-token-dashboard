@@ -85,7 +85,7 @@ Updating Host code requires a DSH restart; Client-only changes need a page refre
 | **Request log** | Individual billed requests, 12 per page, newest first |
 | **Costs** | Estimated spend, per-model breakdown, pricing overrides, and online price refresh |
 
-The header provides the language switch, scan interval, **Sync now**, and export. Scan interval controls local session polling: **5 / 10 / 30 / 60 seconds**. All list tables show 12 rows per page and stretch their rows to fill the card, so the pagination stays at the footer without an inner scrollbar.
+The header provides the language switch, scan interval, **Sync now**, and export. Scan interval controls local session polling: **5 / 10 / 30 / 60 seconds**. All list tables share a 12-row page size with compact natural row heights; pagination stays at the footer and no list introduces an inner scrollbar.
 
 Request-log cost is calculated with the current pricing table in the browser; unpriced models show `—`. Speed is output tokens divided by the measured request window. First-token latency runs from `step/start` to the first stream record; requests without stream timing show `—`.
 
