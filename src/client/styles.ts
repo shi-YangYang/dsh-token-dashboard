@@ -191,16 +191,17 @@ export const CSS = `
   box-shadow: inset 0 -1px 0 var(--tdb-line);
 }
 .tdb-cost-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.tdb-cost-summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tdb-cost-page .tdb-table thead th { padding-top: 4px; }
+.tdb-cost-summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; margin-bottom: 18px; }
 .tdb-cost-summary-main { min-width: 0; }
-.tdb-cost-summary-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
-.tdb-cost-summary-actions { margin-left: auto; }
+.tdb-cost-summary-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
+.tdb-cost-summary-actions { margin-left: auto; padding-bottom: 1px; }
 .tdb-scan-top { display: inline-flex; align-items: center; gap: 4px; }
 .tdb-scan-suffix { font-size: 11px; color: var(--tdb-ink-2); white-space: nowrap; }
 .tdb-scan-top-select { width: 96px; max-width: 96px; }
 .tdb-scan-top-select .tdb-select-trigger { height: 30px; padding: 0 8px; }
 .tdb-cost-summary-value { font-size: 28px; line-height: 1.15; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.tdb-cost-meta { font-size: 11px; color: var(--tdb-ink-2); overflow-wrap: anywhere; }
+.tdb-cost-meta { font-size: 12px; line-height: 1.45; color: var(--tdb-ink-2); overflow-wrap: anywhere; }
 
 .tdb-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .tdb-kpi { padding: 20px 22px; min-width: 0; }
