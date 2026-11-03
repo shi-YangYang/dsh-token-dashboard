@@ -58,10 +58,7 @@ export function DashboardHeader({
           onChange: value => onScanIntervalChange(value as ScanInterval),
           ariaLabel: t('scan.label'),
           className: 'tdb-scan-top-select',
-        }),
-        t('scan.suffix') === ''
-          ? null
-          : h('span', { className: 'tdb-scan-suffix' }, t('scan.suffix'))),
+        })),
       h(Button, {
         variant: 'ghost',
         onClick: onRefresh,

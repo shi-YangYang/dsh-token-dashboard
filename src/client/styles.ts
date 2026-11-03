@@ -197,8 +197,7 @@ export const CSS = `
 .tdb-cost-summary-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
 .tdb-cost-summary-actions { margin-left: auto; padding-bottom: 1px; }
 .tdb-scan-top { display: inline-flex; align-items: center; gap: 4px; }
-.tdb-scan-suffix { font-size: 11px; color: var(--tdb-ink-2); white-space: nowrap; }
-.tdb-scan-top-select { width: 96px; max-width: 96px; }
+.tdb-scan-top-select { width: 132px; max-width: 132px; }
 .tdb-scan-top-select .tdb-select-trigger { height: 30px; padding: 0 8px; }
 .tdb-cost-summary-value { font-size: 28px; line-height: 1.15; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .tdb-cost-meta { font-size: 12px; line-height: 1.45; color: var(--tdb-ink-2); overflow-wrap: anywhere; }
@@ -689,8 +688,7 @@ export const CSS = `
   .tdb-table th, .tdb-table td { padding-left: 8px; padding-right: 8px; }
   .tdb-table .tdb-model-name, .tdb-table .tdb-model-provider { max-width: 120px; }
   .tdb-session-cell { min-width: 140px; }
-  .tdb-scan-suffix { display: none; }
-  .tdb-scan-top-select { width: 88px; max-width: 88px; }
+  .tdb-scan-top-select { width: 124px; max-width: 124px; }
   .tdb-pagetabs { padding: 4px 14px 0; }
   .tdb-pagetab { padding: 9px 8px 8px; }
   .tdb-modal-backdrop { padding: 12px; }
