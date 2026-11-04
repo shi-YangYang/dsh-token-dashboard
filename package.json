@@ -1,5 +1,5 @@
 {
-  "name": "dsh-token-dashboard",
+  "name": "@shi-yangyang/dsh-token-dashboard",
   "version": "0.1.0",
   "description": "Global Token usage analytics for every DeepSeek Harness session: totals, trends, models, sessions, and optional cost estimates.",
   "keywords": [
@@ -60,6 +60,9 @@
     "verify:real": "node scripts/verify-real-sessions.mjs"
   },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shi-YangYang/dsh-token-dashboard.git"

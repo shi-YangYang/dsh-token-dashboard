@@ -45,7 +45,7 @@ async function loadBundle(suffix: string): Promise<LoaderDefinition> {
 test('the built client bundle registers the dashboard plugin factory', async () => {
   const require = createRequire(import.meta.url)
   const definition = await loadBundle('factory')
-  assert.equal(definition.id, 'dsh-token-dashboard')
+  assert.equal(definition.id, '@shi-yangyang/dsh-token-dashboard')
   const plugin = definition.factory(require) as { inject?: string[], apply?: unknown }
   assert.equal(typeof plugin.apply, 'function')
   assert.deepEqual(plugin.inject, ['slots', 'locale', 'layout'])

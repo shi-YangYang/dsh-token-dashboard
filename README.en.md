@@ -32,7 +32,7 @@
 
 DSH already shows token usage for the session in front of you. It does not show the whole picture: every project, model, subagent, fork, and request across your local history.
 
-`dsh-token-dashboard` adds that missing layer as a native plugin, displayed as **Token usage** in DSH.
+`@shi-yangyang/dsh-token-dashboard` adds that missing layer as a native plugin, displayed as **Token usage** in DSH.
 
 The Host half reads session logs through the official `sessionPersistence` service and folds them with the same four-bucket accounting used by `@deepseek-ai/dsh-token-meter`. The Client half registers a `main` panel and a sidebar-footer entry using DSH slots, then renders with the host React runtime and theme tokens.
 
@@ -49,6 +49,8 @@ The plugin never writes a session log, changes a model request, or uploads sessi
 
 ## Quick start
 
+The package name is **`@shi-yangyang/dsh-token-dashboard`**. For now, build from source and install it as a local bundle as described below. The unscoped `dsh-token-dashboard` package on npm belongs to another project; do not use `npm install dsh-token-dashboard` to install this plugin.
+
 ### Requirements
 
 - A DeepSeek Harness installation with the Web UI. Verified on DSH Desktop `0.2.1-rc.3` (Cordis `4.0.5`).
@@ -60,10 +62,9 @@ The plugin never writes a session log, changes a model request, or uploads sessi
 git clone https://github.com/shi-YangYang/dsh-token-dashboard.git
 cd dsh-token-dashboard
 pnpm install
-pnpm build
 ```
 
-`lib/` and `client/` are build outputs and are not committed. Build before installing the plugin.
+`pnpm install` automatically builds the Host and Client through `prepare`, generating the uncommitted `lib/` and `client/` outputs. Run `pnpm build` to rebuild after changing the source.
 
 ### Install into DSH
 

@@ -4,4 +4,4 @@
 # data over an authenticated same-origin route.
 - insert:
     - id: dsh-token-dashboard
-      name: 'dsh-token-dashboard'
+      name: '@shi-yangyang/dsh-token-dashboard'

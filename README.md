@@ -32,7 +32,7 @@
 
 DSH 已经能显示当前会话的 Token 用量，但看不到完整视图：所有项目、模型、子代理、分叉和请求分散在各个会话里。
 
-`dsh-token-dashboard` 补上的就是这一层，以 **Token 用量** 的形式作为原生插件运行。
+`@shi-yangyang/dsh-token-dashboard` 补上的就是这一层，以 **Token 用量** 的形式作为原生插件运行。
 
 Host 端通过官方 `sessionPersistence` 服务读取会话日志，并使用与 `@deepseek-ai/dsh-token-meter` 一致的四桶口径折叠数据。Client 端通过 DSH Slot 注册 `main` 面板和侧边栏 footer 入口，使用宿主提供的 React 运行时和主题 Token 渲染。
 
@@ -49,6 +49,8 @@ Host 端通过官方 `sessionPersistence` 服务读取会话日志，并使用�
 
 ## 快速开始
 
+本项目包名为 **`@shi-yangyang/dsh-token-dashboard`**。当前请按下文从源码构建并作为本地 bundle 安装。npm 上不带 scope 的 `dsh-token-dashboard` 属于另一个项目，请勿使用 `npm install dsh-token-dashboard` 安装本插件。
+
 ### 环境要求
 
 - 可运行 Web UI 的 DeepSeek Harness。已在 DSH Desktop `0.2.1-rc.3`（Cordis `4.0.5`）验证。
@@ -60,10 +62,9 @@ Host 端通过官方 `sessionPersistence` 服务读取会话日志，并使用�
 git clone https://github.com/shi-YangYang/dsh-token-dashboard.git
 cd dsh-token-dashboard
 pnpm install
-pnpm build
 ```
 
-`lib/` 和 `client/` 是构建产物，不提交到仓库。安装插件前必须先构建。
+`pnpm install` 会通过 `prepare` 自动构建 Host 和 Client，生成不入库的 `lib/` 和 `client/`。修改源码后可运行 `pnpm build` 重新构建。
 
 ### 安装到 DSH
 
