@@ -55,6 +55,7 @@
     "pretest": "node scripts/build-client.mjs",
     "typecheck": "tsc -p tsconfig.host.json --noEmit && tsc -p tsconfig.client.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "test": "node scripts/test.mjs",
+    "prepare": "npm run build",
     "prepack": "npm run build",
     "verify:real": "node scripts/verify-real-sessions.mjs"
   },
