@@ -2,6 +2,14 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { JSDOM } from 'jsdom'
 import { createElement as h } from 'react'
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  class ResizeObserverMock {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  }
+  globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver
+}
 
 import { setLanguage } from '../src/client/language.js'
 import { summarize } from '../src/shared/range.js'
@@ -89,6 +97,26 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   globals.HTMLElement = dom.window.HTMLElement
   globals.Node = dom.window.Node
   globals.IS_REACT_ACT_ENVIRONMENT = true
+  globals.Element = dom.window.Element
+  globals.SVGElement = dom.window.SVGElement
+  globals.Event = dom.window.Event
+  globals.MouseEvent = dom.window.MouseEvent
+  globals.PointerEvent = (dom.window as unknown as { PointerEvent?: unknown }).PointerEvent ?? dom.window.MouseEvent
+  globals.getComputedStyle = dom.window.getComputedStyle.bind(dom.window)
+  globals.requestAnimationFrame = (callback: FrameRequestCallback): number => window.setTimeout(() => callback(Date.now()), 0)
+  globals.cancelAnimationFrame = (handle: number): void => window.clearTimeout(handle)
+  const media = (query: string): MediaQueryList => ({
+    matches: query.includes('prefers-reduced-motion'),
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }) as unknown as MediaQueryList
+  globals.matchMedia = media
+  dom.window.matchMedia = media
 
   const calls: string[] = []
   globals.fetch = (async (input: string | URL | Request) => {
@@ -203,7 +231,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.equal(english.getAttribute('aria-pressed'), 'true')
 
   const days7 = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-range-btn'))
-    .find(button => button.textContent === '7 days')
+    .find(button => button.textContent?.startsWith('7 days'))
   assert.ok(days7, 'range control is present')
   await act(async () => {
     days7.click()
@@ -211,7 +239,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.equal(days7.getAttribute('aria-pressed'), 'true')
 
   const ioView = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-view-btn'))
-    .find(button => button.textContent === 'Input / Output')
+    .find(button => button.textContent?.startsWith('Input / Output'))
   assert.ok(ioView, 'chart view control is present')
   await act(async () => {
     ioView.click()

@@ -3,8 +3,9 @@
 import { createElement as h, useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 
-import { Button, EmptyState } from './common.js'
-import { ChartIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
+import { EmptyState } from './common.js'
+import { ChartIcon } from '../icons.js'
+import { Pager } from './ui/Pager.js'
 import { Section } from './ui/Section.js'
 import { DataTable } from './ui/DataTable.js'
 import type { DataColumn } from './ui/DataTable.js'
@@ -76,24 +77,13 @@ export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps):
         rowKey: row => row.id,
         ariaLabel: t('tabs.requests'),
       }),
-      h('div', { className: 'tdb-pager' },
-        h('span', {}, t('requests.count', { count: formatNumber(total, intl) })),
-        h('div', { className: 'tdb-pager-actions' },
-          h(Button, {
-            variant: 'ghost',
-            iconOnly: true,
-            disabled: current <= 0,
-            'aria-label': t('sessions.previous'),
-            onClick: () => setPage(Math.max(0, current - 1)),
-          }, h(ChevronLeftIcon, { size: 15 })),
-          h('span', {}, t('sessions.page', { page: current + 1, pages })),
-          h(Button, {
-            variant: 'ghost',
-            iconOnly: true,
-            disabled: current >= pages - 1,
-            'aria-label': t('sessions.next'),
-            onClick: () => setPage(Math.min(pages - 1, current + 1)),
-          }, h(ChevronRightIcon, { size: 15 }))))))
+      h(Pager, {
+        page: current + 1,
+        pages,
+        onChange: next => setPage(next - 1),
+        label: t('requests.count', { count: formatNumber(total, intl) }),
+        ariaLabel: t('sessions.page', { page: current + 1, pages }),
+      })))
 }
 
 function requestColumns(

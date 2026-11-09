@@ -7,6 +7,7 @@ import { createElement as h, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, ReactElement } from 'react'
 
 import { useElementSize } from '../hooks.js'
+import { TooltipSurface } from '../beui/components/motion/tooltip-surface.js'
 import type { T } from '../lib.js'
 import { clamp, formatCompact, formatDayLabel, formatPercent } from '../../shared/format.js'
 import type { UsageBucket } from '../../shared/types.js'
@@ -299,17 +300,12 @@ export function CacheChart({ buckets, granularity, t, intl }: ChartProps): React
       y: hitY(bucket.cacheReadTokens / prompt),
     }
   })
-  const segments: string[] = []
-  let run: string[] = []
-  for (const point of hitPoints) {
-    if (point === null) {
-      if (run.length > 1) segments.push(run.join(' '))
-      run = []
-      continue
-    }
-    run.push(`${point.x.toFixed(2)},${point.y.toFixed(2)}`)
-  }
-  if (run.length > 1) segments.push(run.join(' '))
+  // Keep one continuous line across buckets where the hit-rate sample is
+  // unavailable. A missing point must not visually break the trend.
+  const linePoints = hitPoints.filter((point): point is NonNullable<typeof point> => point !== null)
+  const segments = linePoints.length > 1
+    ? [linePoints.map(point => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ')]
+    : []
 
   const hovered = hover === null ? undefined : buckets[hover.index]
   const hoveredRatio = hovered === undefined
@@ -398,14 +394,19 @@ interface TooltipProps {
 
 function Tooltip({ x, y, title, rows }: TooltipProps): ReactElement {
   return h('div', { className: 'tdb-tooltip', style: { left: x, top: y } },
-    h('div', { className: 'tdb-tooltip-title' }, title),
-    rows.map(row => h('div', { key: row.label, className: 'tdb-tooltip-row' },
-      h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 5 } },
-        row.color === undefined
-          ? null
-          : h('span', { className: 'tdb-legend-dot', style: { background: row.color } }),
-        row.label),
-      h('b', {}, row.value))))
+    h(TooltipSurface as unknown as (props: Record<string, unknown>) => ReactElement, {
+      ready: true,
+      className: 'tdb-tooltip-surface',
+      children: h('div', { className: 'tdb-tooltip-content' },
+        h('div', { className: 'tdb-tooltip-title' }, title),
+        rows.map(row => h('div', { key: row.label, className: 'tdb-tooltip-row' },
+          h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 5 } },
+            row.color === undefined
+              ? null
+              : h('span', { className: 'tdb-legend-dot', style: { background: row.color } }),
+            row.label),
+          h('b', {}, row.value)))),
+    }))
 }
 
 function grid(

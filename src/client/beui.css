@@ -1,0 +1,72 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source "./**/*.{ts,tsx}";
+
+@layer base {
+  .tdb-root button,
+  .tdb-root input {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+  .tdb-root *,
+  .tdb-root *::before,
+  .tdb-root *::after {
+    border-width: 0;
+    border-style: solid;
+  }
+}
+
+@theme inline {
+  --color-background: var(--tdb-surface);
+  --color-foreground: var(--tdb-ink);
+  --color-card: var(--tdb-surface);
+  --color-card-foreground: var(--tdb-ink);
+  --color-popover: var(--tdb-surface);
+  --color-popover-foreground: var(--tdb-ink);
+  --color-primary: var(--tdb-brand);
+  --color-primary-foreground: var(--dsw-alias-bg-base, #ffffff);
+  --color-secondary: var(--tdb-surface-2);
+  --color-secondary-foreground: var(--tdb-ink);
+  --color-muted: var(--tdb-surface-2);
+  --color-muted-foreground: var(--tdb-ink-2);
+  --color-accent: var(--tdb-surface-2);
+  --color-accent-foreground: var(--tdb-ink);
+  --color-border: var(--tdb-line);
+  --color-input: var(--tdb-line-strong);
+  --color-ring: var(--tdb-brand);
+  --color-destructive: var(--tdb-error);
+  --color-success: var(--tdb-success);
+}
+
+.tdb-root button,
+.tdb-root input {
+  font: inherit;
+}
+
+
+/* Resolve the semantic palette inside the dashboard root so DSH theme tokens
+   are available where the Tailwind utilities are actually used. */
+.tdb-root {
+  --color-background: var(--tdb-surface);
+  --color-foreground: var(--tdb-ink);
+  --color-card: var(--tdb-surface);
+  --color-card-foreground: var(--tdb-ink);
+  --color-popover: var(--tdb-surface);
+  --color-popover-foreground: var(--tdb-ink);
+  --color-primary: var(--tdb-brand);
+  --color-primary-foreground: var(--dsw-alias-bg-base, #ffffff);
+  --color-secondary: var(--tdb-surface-2);
+  --color-secondary-foreground: var(--tdb-ink);
+  --color-muted: var(--tdb-surface-2);
+  --color-muted-foreground: var(--tdb-ink-2);
+  --color-accent: var(--tdb-surface-2);
+  --color-accent-foreground: var(--tdb-ink);
+  --color-border: var(--tdb-line);
+  --color-input: var(--tdb-line-strong);
+  --color-ring: var(--tdb-brand);
+  --color-destructive: var(--tdb-error);
+  --color-success: var(--tdb-success);
+}

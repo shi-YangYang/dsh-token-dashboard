@@ -34,7 +34,7 @@ DSH 已经能显示当前会话的 Token 用量，但看不到完整视图：所
 
 `@shi-yangyang/dsh-token-dashboard` 补上的就是这一层，以 **Token 用量** 的形式作为原生插件运行。
 
-Host 端通过官方 `sessionPersistence` 服务读取会话日志，并使用与 `@deepseek-ai/dsh-token-meter` 一致的四桶口径折叠数据。Client 端通过 DSH Slot 注册 `main` 面板和侧边栏 footer 入口，使用宿主提供的 React 运行时和主题 Token 渲染。
+Host 端通过官方 `sessionPersistence` 服务读取会话日志，并使用与 `@deepseek-ai/dsh-token-meter` 一致的四桶口径折叠数据。Client 端通过 DSH Slot 注册 `main` 面板和侧边栏 footer 入口，使用宿主提供的 React 运行时和主题 Token 渲染。交互控件基于 **beUI**（Tailwind CSS + Motion）构建。
 
 插件不会写入会话日志、修改模型请求或上传会话数据。会话日志始终是唯一事实来源。
 
@@ -107,7 +107,7 @@ flowchart LR
 ```
 
 - **Host**（`src/host`）读取官方会话存储、增量折叠用量、处理价目并提供看板 API。缓存只在内存中，按会话 revision 或 live sequence 维护；没有第二个数据库或账本。
-- **Client**（`src/client`）注册 `main` 与 `sidebar.footer.action` Slot，管理扫描间隔、语言和价目偏好，并渲染看板。React 由宿主提供，不会重复打包。
+- **Client**（`src/client`）注册 `main` 与 `sidebar.footer.action` Slot，管理扫描间隔、语言和价目偏好，并渲染看板。React 由宿主提供，不会重复打包；BeUI 控件源码在 `src/client/beui/`，Tailwind 样式在构建时注入。
 - **Shared**（`src/shared`）包含双方共用的 wire 类型、四桶运算、范围选择、价目和格式化。
 
 统计遵循 `tokenUsage` 的公开口径：四个互斥 provider 桶、同一次 attempt 的最终样本替换流式样本、重试开启新 attempt、分叉继承的前缀不计入总量。实现见 [`src/host/fold.ts`](./src/host/fold.ts)。
@@ -128,7 +128,7 @@ HTTP 接口只读且同源：
 
 ```bash
 pnpm install
-pnpm build        # Host（tsc）+ Client（esbuild）
+pnpm build        # Host（tsc）+ Client（Tailwind + esbuild）
 pnpm typecheck    # Host、Client、Test 三套类型检查
 pnpm test         # 87 个测试：单元、路由、SSR、jsdom、bundle
 pnpm verify:real  # 用独立实现校验真实本地日志折叠
@@ -139,7 +139,7 @@ pnpm build:prices # 刷新 OpenRouter 内置价目快照（需要网络）
 
 ```text
 src/host      会话源、Token fold、聚合、价目、HTTP 路由
-src/client    React 界面、DSH Slot、hooks、主题 Token 样式
+src/client    React 界面、DSH Slot、hooks、BeUI 控件、主题 Token 样式
 src/shared    wire 类型、价目、范围、格式化
 test          node:test 测试与 SSR/jsdom 渲染检查
 scripts       构建、测试、真实会话校验
@@ -160,5 +160,7 @@ scripts       构建、测试、真实会话校验
 ## 许可证
 
 [MIT](./LICENSE) © 2026 小洋
+
+界面控件基于 [beUI](https://github.com/starc007/ui-components)（MIT）；第三方声明见 [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)。
 
 为 DeepSeek Harness 与 Cordis 构建。价目数据来自公开的 OpenRouter 模型列表和 DeepSeek 公布的单价。

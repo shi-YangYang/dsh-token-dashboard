@@ -10,7 +10,9 @@ import type {
 } from 'react'
 
 import { CloseIcon } from '../icons.js'
-import { useModal } from '../hooks.js'
+import { Button as BeuiButton } from '../beui/components/motion/button/base.js'
+import { Alert, AlertAction, AlertContent } from '../beui/components/motion/alert.js'
+import { MorphingModal } from '../beui/components/motion/morphing-modal.js'
 
 export type ButtonVariant = 'default' | 'primary' | 'ghost'
 
@@ -30,17 +32,12 @@ export function Button({
   children,
   ...rest
 }: ButtonProps): ReactElement {
-  const classes = [
-    'tdb-btn',
-    variant === 'primary' ? 'tdb-btn--primary' : '',
-    variant === 'ghost' ? 'tdb-btn--ghost' : '',
-    iconOnly ? 'tdb-btn--icon' : '',
-    className,
-  ].filter(Boolean).join(' ')
-  return h('button', {
-    type: 'button',
+  const beuiVariant = variant === 'primary' ? 'primary' : variant === 'ghost' ? 'ghost' : 'outline'
+  return h(BeuiButton as unknown as (props: Record<string, unknown>) => ReactElement, {
     ...rest,
-    className: classes,
+    variant: beuiVariant,
+    size: iconOnly ? 'icon' : 'sm',
+    className,
     disabled: disabled === true || busy,
     'aria-busy': busy || undefined,
   }, children)
@@ -67,10 +64,12 @@ export interface NoticeProps {
 }
 
 export function Notice({ tone = 'info', icon, children, action }: NoticeProps): ReactElement {
-  return h('div', { className: `tdb-notice tdb-notice--${tone}`, role: tone === 'error' ? 'alert' : undefined },
-    icon,
-    h('div', {}, children),
-    action === undefined ? null : h('div', { className: 'tdb-notice-actions' }, action))
+  const variant = tone === 'error' ? 'destructive' : tone === 'warn' ? 'warning' : 'info'
+  return h(Alert, { variant, open: true, className: 'tdb-notice', role: tone === 'error' ? 'alert' : 'status' },
+    h(AlertContent, {},
+      icon,
+      h('div', { className: 'min-w-0' }, children),
+      action === undefined ? null : h(AlertAction, {}, action)))
 }
 
 export function EmptyState({ icon, title }: { icon?: ReactNode; title: ReactNode }): ReactElement {
@@ -126,34 +125,29 @@ export interface ModalProps {
 }
 
 export function Modal({ open, title, subtitle, onClose, closeLabel, children, footer }: ModalProps): ReactElement | null {
-  const ref = useModal(open, onClose)
   if (!open) return null
-  return h('div', {
-    className: 'tdb-modal-backdrop',
-    onMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => {
-      if (event.target === event.currentTarget) onClose()
-    },
-  },
-  h('div', {
-    className: 'tdb-modal',
-    role: 'dialog',
-    'aria-modal': 'true',
-    'aria-label': typeof title === 'string' ? title : closeLabel,
-    ref,
-  },
-  h('div', { className: 'tdb-modal-head' },
+  return h(MorphingModal as unknown as (props: Record<string, unknown>) => ReactElement, {
+    viewId: 'modal',
+    onClose,
+    placement: 'center',
+    ariaLabel: typeof title === 'string' ? title : closeLabel,
+    className: 'tdb-modal max-w-2xl',
+    children: [
+      h('div', { className: 'tdb-modal-head' },
     h('div', {},
       h('h2', { className: 'tdb-modal-title' }, title),
       subtitle === undefined ? null : h('p', { className: 'tdb-modal-sub' }, subtitle)),
-    h(Button, {
-      variant: 'ghost',
-      iconOnly: true,
-      'data-autofocus': true,
-      'aria-label': closeLabel,
-      onClick: onClose,
-    }, h(CloseIcon, { size: 16 }))),
-  h('div', { className: 'tdb-modal-body' }, children),
-  footer === undefined ? null : h('div', { className: 'tdb-modal-foot' }, footer)))
+      h(Button, {
+        variant: 'ghost',
+        iconOnly: true,
+        'data-autofocus': true,
+        'aria-label': closeLabel,
+        onClick: onClose,
+      }, h(CloseIcon, { size: 16 }))),
+      h('div', { className: 'tdb-modal-body' }, children),
+      footer === undefined ? null : h('div', { className: 'tdb-modal-foot' }, footer),
+    ],
+  })
 }
 
 export function SkeletonDashboard(): ReactElement {

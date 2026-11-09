@@ -34,7 +34,7 @@ DSH already shows token usage for the session in front of you. It does not show 
 
 `@shi-yangyang/dsh-token-dashboard` adds that missing layer as a native plugin, displayed as **Token usage** in DSH.
 
-The Host half reads session logs through the official `sessionPersistence` service and folds them with the same four-bucket accounting used by `@deepseek-ai/dsh-token-meter`. The Client half registers a `main` panel and a sidebar-footer entry using DSH slots, then renders with the host React runtime and theme tokens.
+The Host half reads session logs through the official `sessionPersistence` service and folds them with the same four-bucket accounting used by `@deepseek-ai/dsh-token-meter`. The Client half registers a `main` panel and a sidebar-footer entry using DSH slots, then renders with the host React runtime and theme tokens. Interactive controls are built on **beUI** (Tailwind CSS + Motion).
 
 The plugin never writes a session log, changes a model request, or uploads session data. The logs remain the only source of truth.
 
@@ -107,7 +107,7 @@ flowchart LR
 ```
 
 - **Host** (`src/host`) reads the official session store, folds usage incrementally, handles pricing, and serves the dashboard API. The cache is in memory and keyed by session revision (or live sequence); there is no second database or ledger.
-- **Client** (`src/client`) registers `main` and `sidebar.footer.action` slots, manages scan/language/price preferences, and renders the dashboard. React is supplied by the host and is not bundled twice.
+- **Client** (`src/client`) registers `main` and `sidebar.footer.action` slots, manages scan/language/price preferences, and renders the dashboard. React is supplied by the host and is not bundled twice; BeUI component source lives in `src/client/beui/`, with Tailwind CSS injected at build time.
 - **Shared** (`src/shared`) contains the wire types, four-bucket arithmetic, range selection, pricing, and formatting used by both sides.
 
 Usage follows the published `tokenUsage` semantics: four disjoint provider buckets, final samples replacing stream samples for the same attempt, retries opening a new attempt, and inherited fork prefixes excluded from totals. See [`src/host/fold.ts`](./src/host/fold.ts) for the implementation.
@@ -128,7 +128,7 @@ All routes use the Host Connection gate when available and return `Cache-Control
 
 ```bash
 pnpm install
-pnpm build        # Host (tsc) + Client (esbuild)
+pnpm build        # Host (tsc) + Client (Tailwind + esbuild)
 pnpm typecheck    # Host, Client, and Test type checks
 pnpm test         # 87 tests: unit, routes, SSR, jsdom, bundle
 pnpm verify:real  # fold real local logs against an independent reference
@@ -139,7 +139,7 @@ pnpm build:prices # refresh the generated OpenRouter price snapshot (network)
 
 ```text
 src/host      session source, token fold, aggregation, prices, HTTP routes
-src/client    React UI, DSH slots, hooks, theme-token styles
+src/client    React UI, DSH slots, hooks, BeUI controls, theme-token styles
 src/shared    wire types, pricing, ranges, formatting
 test          node:test suites plus SSR/jsdom rendering checks
 scripts       build, test, and real-session verification
@@ -160,5 +160,7 @@ Issues and pull requests are welcome. Run `pnpm typecheck` and `pnpm test` befor
 ## License
 
 [MIT](./LICENSE) © 2026 小洋
+
+UI controls are based on [beUI](https://github.com/starc007/ui-components) (MIT). See [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
 
 Built for DeepSeek Harness and Cordis. Pricing data comes from the public OpenRouter model list and DeepSeek's published rates.

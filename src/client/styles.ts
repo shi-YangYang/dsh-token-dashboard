@@ -244,26 +244,6 @@ export const CSS = `
   min-width: 0;
 }
 
-.tdb-range, .tdb-view { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; max-width: 100%; }
-.tdb-range-btn, .tdb-view-btn {
-  height: 28px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 7px;
-  background: none;
-  color: var(--tdb-ink-2);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.tdb-range-btn:hover, .tdb-view-btn:hover { color: var(--tdb-ink); background: var(--tdb-surface-2); }
-.tdb-range-btn[aria-pressed="true"], .tdb-view-btn[aria-pressed="true"] {
-  color: var(--tdb-ink);
-  font-weight: 600;
-  background: var(--tdb-surface-2);
-}
-
 .tdb-chart-toolbar {
   display: flex;
   align-items: center;
@@ -345,18 +325,17 @@ export const CSS = `
 }
 .tdb-tooltip {
   position: absolute;
-  z-index: 5;
+  z-index: 8;
   pointer-events: none;
-  min-width: min(140px, calc(100% - 16px));
-  max-width: min(230px, calc(100% - 16px));
   transform: translate(-50%, 0);
-  background: var(--dsw-alias-bg-overlay, var(--tdb-surface));
-  border: 1px solid var(--tdb-line-strong);
-  border-radius: 9px;
-  box-shadow: 0 8px 26px color-mix(in srgb, #000000 16%, transparent);
+}
+.tdb-tooltip-surface {
+  min-width: 140px;
+  max-width: 240px;
   padding: 8px 10px;
   font-size: 11px;
 }
+.tdb-tooltip-content { min-width: 140px; max-width: 240px; font-size: 11px; }
 .tdb-tooltip-title { font-weight: 600; margin-bottom: 5px; }
 .tdb-tooltip-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 1px 0; color: var(--tdb-ink-2); }
 .tdb-tooltip-row b { color: var(--tdb-ink); font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -403,7 +382,7 @@ export const CSS = `
 .tdb-share { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .tdb-share-track { flex: 1; height: 4px; border-radius: 2px; background: var(--tdb-surface-2); overflow: hidden; }
 .tdb-share-fill { height: 100%; border-radius: 2px; background: var(--tdb-cat-input); }
-.tdb-share-text { flex: 0 0 auto; width: 38px; text-align: right; font-size: 11px; color: var(--tdb-ink-2); font-variant-numeric: tabular-nums; }
+.tdb-share-text { flex: 0 0 auto; min-width: 42px; text-align: right; font-size: 11px; color: var(--tdb-ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .tdb-session-cell { min-width: 0; }
 .tdb-session-model { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -435,23 +414,6 @@ export const CSS = `
   color: var(--tdb-ink-2);
 }
 .tdb-pager-actions { display: flex; align-items: center; gap: 4px; }
-
-.tdb-notice {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  background: var(--tdb-surface-2);
-  color: var(--tdb-ink-2);
-}
-.tdb-notice > * { min-width: 0; }
-.tdb-notice svg { flex: 0 0 auto; margin-top: 1px; }
-.tdb-notice--warn { color: var(--tdb-warn); background: color-mix(in srgb, var(--tdb-warn) 8%, transparent); }
-.tdb-notice--error { color: var(--tdb-error); background: color-mix(in srgb, var(--tdb-error) 8%, transparent); }
-.tdb-notice-actions { margin-left: auto; }
 
 .tdb-empty {
   display: flex;
@@ -642,14 +604,6 @@ export const CSS = `
 .tdb-select-trigger { display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: left; cursor: pointer; }
 .tdb-select-trigger .tdb-select-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tdb-select-trigger svg { flex: 0 0 auto; color: var(--tdb-ink-2); }
-.tdb-select-menu { position: fixed; z-index: 130; padding: 4px; border: 1px solid var(--tdb-line-strong); border-radius: 9px; background: var(--tdb-surface); box-shadow: 0 10px 28px color-mix(in srgb, #000000 16%, transparent); overflow-y: auto; scrollbar-width: none; }
-.tdb-select-menu::-webkit-scrollbar { display: none; }
-.tdb-select-option { display: flex; align-items: center; gap: 8px; width: 100%; height: 30px; padding: 0 8px; border: 0; border-radius: 6px; background: none; color: var(--tdb-ink); font: inherit; font-size: 12px; text-align: left; cursor: pointer; white-space: nowrap; }
-.tdb-select-option:hover, .tdb-select-option[data-active="true"] { background: var(--tdb-surface-2); }
-.tdb-select-option[aria-selected="true"] { font-weight: 600; }
-.tdb-select-option:focus-visible, .tdb-cal-day:focus-visible { outline: 2px solid color-mix(in srgb, var(--tdb-brand) 50%, transparent); outline-offset: -2px; }
-.tdb-select-option > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.tdb-select-option svg { flex: 0 0 auto; margin-left: auto; color: var(--tdb-brand); }
 .tdb-pricing-input.tdb-pricing-row-error { border-color: var(--tdb-error); }
 .tdb-error-text { color: var(--tdb-error); font-size: 11px; }
 .tdb-hint { font-size: 11px; color: var(--tdb-ink-2); }

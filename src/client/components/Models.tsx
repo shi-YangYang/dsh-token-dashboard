@@ -3,8 +3,9 @@
 import { createElement as h, useState } from 'react'
 import type { ReactElement } from 'react'
 
-import { Button, EmptyState, ShareBar } from './common.js'
-import { ChartIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons.js'
+import { EmptyState, ShareBar } from './common.js'
+import { ChartIcon } from '../icons.js'
+import { Pager } from './ui/Pager.js'
 import { Section } from './ui/Section.js'
 import { DataTable } from './ui/DataTable.js'
 import type { DataColumn } from './ui/DataTable.js'
@@ -95,22 +96,12 @@ export function ModelTable({ models, total, t, intl }: ModelsProps): ReactElemen
           ariaLabel: t('models.title'),
         }),
         pages > 1
-          ? h('div', { className: 'tdb-pager' },
-            h('span', {}, t('sessions.page', { page: current + 1, pages })),
-            h('div', { className: 'tdb-pager-actions' },
-              h(Button, {
-                variant: 'ghost',
-                iconOnly: true,
-                disabled: current <= 0,
-                'aria-label': t('sessions.previous'),
-                onClick: () => setPage(Math.max(0, current - 1)),
-              }, h(ChevronLeftIcon, { size: 15 })),
-              h(Button, {
-                variant: 'ghost',
-                iconOnly: true,
-                disabled: current >= pages - 1,
-                'aria-label': t('sessions.next'),
-                onClick: () => setPage(Math.min(pages - 1, current + 1)),
-              }, h(ChevronRightIcon, { size: 15 }))))
+          ? h(Pager, {
+            page: current + 1,
+            pages,
+            onChange: next => setPage(next - 1),
+            label: t('sessions.page', { page: current + 1, pages }),
+            ariaLabel: t('sessions.page', { page: current + 1, pages }),
+          })
           : null))
 }

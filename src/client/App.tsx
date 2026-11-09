@@ -28,6 +28,7 @@ import { selectRange } from '../shared/range.js'
 import type { RangeSelection } from '../shared/range.js'
 import { SCAN_INTERVAL_MS, readScanInterval, saveScanInterval, type ScanInterval } from './scan.js'
 import { CSS } from './styles.js'
+import { BEUI_CSS } from './beui-css.js'
 
 const AUTO_PRICE_SYNC_MS = 6 * 60 * 60 * 1_000
 const AUTO_PRICE_INITIAL_DELAY_MS = 3_000
@@ -150,13 +151,13 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
 
   if (stats.loading && data === null) {
     return h('div', { className: 'tdb-root' },
-      h('style', { key: 'tdb-styles' }, CSS),
+      h('style', { key: 'tdb-styles' }, CSS + BEUI_CSS),
       h('div', { className: 'tdb-scroll' }, h(SkeletonDashboard)))
   }
 
   if (data === null) {
     return h('div', { className: 'tdb-root' },
-      h('style', { key: 'tdb-styles' }, CSS),
+      h('style', { key: 'tdb-styles' }, CSS + BEUI_CSS),
       h('div', { className: 'tdb-scroll' },
         h('div', { className: 'tdb-container' },
           header(false),
@@ -171,7 +172,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
 
   if (data.sessions.total === 0) {
     return h('div', { className: 'tdb-root' },
-      h('style', { key: 'tdb-styles' }, CSS),
+      h('style', { key: 'tdb-styles' }, CSS + BEUI_CSS),
       h('div', { className: 'tdb-scroll' },
         h('div', { className: 'tdb-container' },
           header(false),
@@ -187,7 +188,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
       : null
 
   return h('div', { className: 'tdb-root' },
-    h('style', { key: 'tdb-styles' }, CSS),
+    h('style', { key: 'tdb-styles' }, CSS + BEUI_CSS),
     h('div', { className: 'tdb-scroll' },
       h('div', { className: 'tdb-container' },
         header(true),
