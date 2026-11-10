@@ -9,7 +9,7 @@ import {
   TabsTrigger,
 } from '../../beui/components/motion/tabs.js'
 
-export type PageId = 'overview' | 'models' | 'sessions' | 'requests' | 'costs'
+export type PageId = 'overview' | 'models' | 'sessions' | 'requests' | 'costs' | 'pricing'
 
 export interface PageTab {
   id: PageId

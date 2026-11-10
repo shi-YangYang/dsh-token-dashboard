@@ -11,7 +11,7 @@ import { DataTable } from './ui/DataTable.js'
 import type { DataColumn } from './ui/DataTable.js'
 import type { T } from '../lib.js'
 import { formatClock, formatFirstToken, formatNumber, formatSpeed } from '../../shared/format.js'
-import { costOf, type PricingTable } from '../../shared/pricing.js'
+import { costOf, priceForModel, type PricingTable } from '../../shared/pricing.js'
 import { fetchRequestPage } from '../lib.js'
 import { TABLE_PAGE_SIZE } from '../table.js'
 import type { RequestLogPage, RequestRecord } from '../../shared/types.js'
@@ -163,7 +163,7 @@ function requestColumns(
 }
 
 function requestCost(row: RequestRecord, pricing: PricingTable): string {
-  const price = pricing[row.modelKey]
+  const price = priceForModel(pricing, row.modelKey, row.model)
   const amount = costOf({
     uncachedInputTokens: row.inputTokens,
     cacheReadTokens: row.cacheReadTokens,

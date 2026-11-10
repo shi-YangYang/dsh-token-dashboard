@@ -414,6 +414,8 @@ export const CSS = `
   color: var(--tdb-ink-2);
 }
 .tdb-pager-actions { display: flex; align-items: center; gap: 4px; }
+.tdb-pager ul, .tdb-pager li { margin: 0; padding: 0; list-style: none; }
+.tdb-pager li::marker { content: ''; }
 
 .tdb-empty {
   display: flex;
@@ -588,7 +590,9 @@ export const CSS = `
 }
 .tdb-menu-item:hover { background: var(--tdb-surface-2); }
 
-.tdb-pricing-wrap { overflow-x: auto; }
+.tdb-pricing-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.tdb-pricing-wrap { flex: 0 1 auto; min-height: 0; overflow: hidden; }
+.tdb-pricing-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 14px; }
 .tdb-pricing-grid {
   display: grid;
   grid-template-columns: 1.6fr 0.7fr repeat(4, minmax(0, 0.6fr));

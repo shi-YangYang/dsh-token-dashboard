@@ -34,7 +34,6 @@ export interface CostProps {
   refreshingPrices: boolean
   priceError: boolean
   onRefreshPrices: () => void
-  onConfigure: () => void
   autoSync?: boolean | undefined
 }
 
@@ -49,7 +48,6 @@ export function CostPanel({
   refreshingPrices,
   priceError,
   onRefreshPrices,
-  onConfigure,
   autoSync,
 }: CostProps): ReactElement | null {
   const [expanded, setExpanded] = useState(false)
@@ -65,8 +63,7 @@ export function CostPanel({
         h('span', { className: 'tdb-cost-title' }, t('cost.title')),
         h('span', { className: 'tdb-cost-hint' }, t('cost.none')),
         h('span', { className: 'tdb-cost-actions', style: { marginLeft: 'auto' } },
-          h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel),
-          h(Button, { onClick: onConfigure }, t('cost.set')))),
+          h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel))),
       priceError ? h('div', { className: 'tdb-error-text', style: { padding: '0 22px 12px' } }, t('cost.refreshError')) : null)
   }
 
@@ -92,9 +89,7 @@ export function CostPanel({
           h('span', { className: 'tdb-cost-hint' }, sourceText(t, intl, onlineAt, onlineSource, autoSync === true)),
           h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel)),
         priceError ? h('div', { className: 'tdb-error-text' }, t('cost.refreshError')) : null,
-        h(CostTable, { rows: estimate.rows, t, intl }),
-        h('div', { className: 'tdb-cost-actions' },
-          h(Button, { variant: 'ghost', onClick: onConfigure }, t('cost.manage'))))
+        h(CostTable, { rows: estimate.rows, t, intl }))
       : null)
 }
 
@@ -110,7 +105,6 @@ export function CostPage(props: CostProps): ReactElement {
     refreshingPrices,
     priceError,
     onRefreshPrices,
-    onConfigure,
     autoSync,
   } = props
   const estimate = estimateCost([...models], pricing)
@@ -130,8 +124,7 @@ export function CostPage(props: CostProps): ReactElement {
                 ? h('span', { className: 'tdb-cost-hint' }, t('cost.unpriced', { count: estimate.unpricedModels }))
                 : null)),
           h('div', { className: 'tdb-cost-actions tdb-cost-summary-actions' },
-            h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel),
-            h(Button, { onClick: onConfigure }, t('cost.manage')))),
+            h(Button, { variant: 'ghost', busy: refreshingPrices, onClick: onRefreshPrices }, refreshLabel))),
         priceError ? h('div', { className: 'tdb-error-text', style: { marginTop: '6px' } }, t('cost.refreshError')) : null,
         h(CostTable, { rows: estimate.rows, t, intl })))
 }

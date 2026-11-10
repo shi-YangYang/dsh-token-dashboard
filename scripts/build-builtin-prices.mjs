@@ -18,43 +18,31 @@ function perMillion(value) {
   return Math.round(rate * 1_000_000 * 1_000_000) / 1_000_000
 }
 
-function canonical(id) {
-  let value = id.toLowerCase().replace(/^[^/]+\//, '')
-  value = value.replace(/:(free|batch)$/, '')
-  return value
-    .replace(/[-_](20\d{2})[-_]?(\d{2})[-_]?(\d{2})$/, '')
-    .replace(/[-_](\d{8})$/, '')
-    .replace(/[-_](\d{4})$/, '')
-}
-
-const groups = new Map()
+const models = new Map()
 for (const raw of payload.data) {
   if (raw === null || typeof raw !== 'object') continue
   const id = typeof raw.id === 'string' ? raw.id : ''
-  if (id === '' || id.includes(':batch')) continue
+  if (id === '') continue
   const pricing = raw.pricing
   if (pricing === null || typeof pricing !== 'object') continue
   const input = perMillion(pricing.prompt)
   const output = perMillion(pricing.completion)
   if (input === null || output === null) continue
-  const price = {
+  models.set(id, {
     currency: 'USD',
     input,
     output,
     cacheRead: perMillion(pricing.input_cache_read) ?? 0,
     cacheWrite: perMillion(pricing.input_cache_write) ?? 0,
-  }
-  const key = canonical(id)
-  if (key === '') continue
-  const rank = id.includes(':free') ? 1 : 0
-  const created = typeof raw.created === 'number' ? raw.created : 0
-  const current = groups.get(key)
-  if (current === undefined || rank < current.rank || (rank === current.rank && created > current.created)) {
-    groups.set(key, { id, price, rank, created })
-  }
+  })
 }
 
-const entries = [...groups.values()].sort((a, b) => a.id.localeCompare(b.id))
+// Keep every priced OpenRouter id, including free/batch variants. The lookup
+// also normalizes dated and aliased ids, but exact ids must be present so the
+// built-in table covers the complete current model list.
+const entries = [...models.entries()]
+  .map(([id, price]) => ({ id, price }))
+  .sort((a, b) => a.id.localeCompare(b.id))
 const updated = new Date().toISOString().slice(0, 10)
 const body = entries.map(entry => `  {
     id: ${JSON.stringify(entry.id)},

@@ -7,7 +7,7 @@ import { Dashboard } from '../src/client/App.js'
 import { KpiCards } from '../src/client/components/Cards.js'
 import { CostPage, CostPanel } from '../src/client/components/Cost.js'
 import { ModelTable } from '../src/client/components/Models.js'
-import { PricingEditor } from '../src/client/components/PricingEditor.js'
+import { PricingPage } from '../src/client/components/PricingPage.js'
 import { SessionDetail } from '../src/client/components/SessionDetail.js'
 import { SessionTable } from '../src/client/components/Sessions.js'
 import { Trends } from '../src/client/components/Trends.js'
@@ -203,10 +203,9 @@ test('empty tables and cost estimates render their explicit empty states', () =>
     refreshingPrices: false,
     priceError: false,
     onRefreshPrices: () => {},
-    onConfigure: () => {},
   }))
   assert.match(cost, /No prices set/)
-  assert.match(cost, /Set prices/)
+  assert.doesNotMatch(cost, /Set prices/)
 })
 
 test('a configured price renders an estimated amount', () => {
@@ -222,7 +221,6 @@ test('a configured price renders an estimated amount', () => {
     refreshingPrices: false,
     priceError: false,
     onRefreshPrices: () => {},
-    onConfigure: () => {},
   }))
   assert.match(markup, /Estimated cost/)
   assert.match(markup, /0\.003300/)
@@ -245,17 +243,15 @@ test('the session detail modal renders metadata, totals, and model rows', () => 
 })
 
 test('the pricing editor renders one editable row per model', () => {
-  const markup = renderToStaticMarkup(h(PricingEditor, {
-    open: true,
+  const markup = renderToStaticMarkup(h(PricingPage, {
     models: [model],
     pricing: {},
     defaults: {},
     t,
-    onClose: () => {},
     onSave: () => {},
   }))
-  assert.match(markup, /Manage prices/)
-  assert.match(markup, /Rates per 1M tokens/)
+  assert.match(markup, /List prices are pre-filled/)
+  assert.match(markup, /Save/)
   assert.match(markup, /deepseek-v4\.1-flash/)
 })
 
@@ -296,7 +292,6 @@ test('the cost page paginates model rows', () => {
     refreshingPrices: false,
     priceError: false,
     onRefreshPrices: () => {},
-    onConfigure: () => {},
   }))
   assert.match(markup, /1 \/ 2/)
   assert.match(markup, /cost-0/)
@@ -304,23 +299,21 @@ test('the cost page paginates model rows', () => {
 })
 
 test('the pricing editor paginates a long model list', () => {
-  const many = Array.from({ length: 7 }, (_, index): ModelUsage => ({
+  const many = Array.from({ length: 13 }, (_, index): ModelUsage => ({
     ...model,
     key: `p::m-${index}`,
     model: `model-${index}`,
   }))
-  const markup = renderToStaticMarkup(h(PricingEditor, {
-    open: true,
+  const markup = renderToStaticMarkup(h(PricingPage, {
     models: many,
     pricing: {},
     defaults: {},
     t,
-    onClose: () => {},
     onSave: () => {},
   }))
   assert.match(markup, /1 \/ 2/)
   assert.match(markup, /model-0/)
-  assert.doesNotMatch(markup, /model-6/)
+  assert.doesNotMatch(markup, /model-12/)
 })
 
 test('the dashboard shell renders its loading state without a Host', () => {

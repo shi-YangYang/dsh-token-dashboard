@@ -6,6 +6,7 @@
 
 import { builtinPriceFor } from './builtin-prices.js'
 import type { ModelUsage, TokenBuckets } from './types.js'
+import { modelKeyCandidates } from './builtin-prices.js'
 
 /** One model's user-configured rates, in `currency` per one million tokens. */
 export interface ModelPrice {
@@ -127,6 +128,18 @@ export function costOf(usage: Pick<TokenBuckets, 'uncachedInputTokens' | 'cacheR
   return Number.isFinite(amount) ? amount : null
 }
 
+
+/** Resolve a price by exact model key, then by normalized model-name candidates. */
+export function priceForModel(table: PricingTable, key: string, model: string): ModelPrice | undefined {
+  const direct = table[key]
+  if (direct !== undefined) return direct
+  for (const candidate of modelKeyCandidates(model)) {
+    const price = table[candidate]
+    if (price !== undefined) return price
+  }
+  return undefined
+}
+
 /** Build the per-model estimate and currency totals for the current range. */
 export function estimateCost(models: ModelUsage[], table: PricingTable): CostEstimate {
   const rows: ModelCostRow[] = []
@@ -135,7 +148,7 @@ export function estimateCost(models: ModelUsage[], table: PricingTable): CostEst
   let unpricedModels = 0
 
   for (const model of models) {
-    const price = table[model.key]
+    const price = priceForModel(table, model.key, model.model)
     const configured = isPriceConfigured(price)
     const amount = configured ? costOf(model, price) : null
     if (configured && amount !== null) {

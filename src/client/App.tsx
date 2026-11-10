@@ -7,7 +7,7 @@ import { KpiCards } from './components/Cards.js'
 import { CostPage } from './components/Cost.js'
 import { DashboardHeader } from './components/DashboardHeader.js'
 import { ModelTable } from './components/Models.js'
-import { PricingEditor } from './components/PricingEditor.js'
+import { PricingPage } from './components/PricingPage.js'
 import { SessionDetail } from './components/SessionDetail.js'
 import { SessionTable } from './components/Sessions.js'
 import { RequestLog } from './components/RequestLog.js'
@@ -24,6 +24,7 @@ import { setLanguage, useLanguage } from './language.js'
 import { en, zh } from './locales.js'
 import { totalTokens } from '../shared/model.js'
 import { defaultsForModels, mergePricing } from '../shared/pricing.js'
+import { builtinPriceRows } from '../shared/builtin-prices.js'
 import { selectRange } from '../shared/range.js'
 import type { RangeSelection } from '../shared/range.js'
 import { SCAN_INTERVAL_MS, readScanInterval, saveScanInterval, type ScanInterval } from './scan.js'
@@ -61,9 +62,22 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   const models = useMemo(() => data?.models ?? [], [data])
   const defaults = useMemo(() => defaultsForModels(models, online), [models, online])
   const effectivePricing = useMemo(() => mergePricing(defaults, pricing), [defaults, pricing])
+  const builtinRows = useMemo(() => builtinPriceRows(), [])
+  const builtinModels = useMemo(() => builtinRows.map(row => ({
+    key: row.key,
+    provider: row.provider,
+    model: row.model,
+    requests: 0,
+    uncachedInputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    outputTokens: 0,
+  })), [builtinRows])
+  const builtinDefaults = useMemo(() => Object.fromEntries(
+    builtinRows.map(row => [row.key, row.price]),
+  ), [builtinRows])
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [pricingOpen, setPricingOpen] = useState(false)
   const [page, setPage] = useState<PageId>('overview')
   const [requestRefresh, setRequestRefresh] = useState(0)
   const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
@@ -124,6 +138,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
     { id: 'sessions' as const, label: t('tabs.sessions') },
     { id: 'requests' as const, label: t('tabs.requests') },
     { id: 'costs' as const, label: t('tabs.costs') },
+    { id: 'pricing' as const, label: t('tabs.pricing') },
   ]
   const refreshAll = (): void => {
     stats.refresh()
@@ -240,7 +255,15 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
                     intl,
                     refreshToken: `${data.revision}:${requestRefresh}`,
                   })
-                  : h(CostPage, {
+                  : page === 'pricing'
+                    ? h(PricingPage, {
+                      models: builtinModels,
+                      pricing,
+                      defaults: builtinDefaults,
+                      t,
+                      onSave: savePricing,
+                    })
+                    : h(CostPage, {
                   models: data.models,
                   pricing: effectivePricing,
                   t,
@@ -250,7 +273,6 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
                   refreshingPrices: refreshingOnline,
                   priceError: onlineError,
                   onRefreshPrices: () => { void refreshOnline(data.models) },
-                  onConfigure: () => setPricingOpen(true),
                   autoSync: true,
                 }))))),
     h(SessionDetail, {
@@ -265,13 +287,5 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
           setSelectedId(null)
         },
     }),
-    h(PricingEditor, {
-      open: pricingOpen,
-      models: data.models,
-      pricing,
-      defaults,
-      t,
-      onClose: () => setPricingOpen(false),
-      onSave: savePricing,
-    }))
+    )
 }

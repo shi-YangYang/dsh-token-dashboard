@@ -205,7 +205,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.doesNotMatch(container.textContent ?? '', /Fix the parser/)
   assert.doesNotMatch(container.textContent ?? '', /Estimated cost/)
   assert.equal(container.querySelectorAll('.tdb-surface').length, 1)
-  assert.equal(container.querySelectorAll('.tdb-pagetab').length, 5)
+  assert.equal(container.querySelectorAll('.tdb-pagetab').length, 6)
   assert.equal(container.querySelectorAll('.tdb-kpi').length, 4)
   assert.equal(container.querySelectorAll('.tdb-section-title').length, 0)
   assert.equal(container.textContent?.includes('Lifetime'), false)
@@ -314,20 +314,12 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.match(container.textContent ?? '', /OpenRouter/)
   assert.equal(calls.some(url => url.includes('/prices')), true)
 
-  const managePrices = Array.from(container.querySelectorAll('button'))
-    .find(button => button.textContent === 'Manage prices')
-  assert.ok(managePrices, 'manage prices button is present')
-  await act(async () => {
-    managePrices.click()
-  })
-  assert.match(container.querySelector('.tdb-modal')?.textContent ?? '', /Manage prices/)
+  assert.equal(container.textContent?.includes('Manage prices'), false)
 
-  const closePrices = container.querySelector<HTMLButtonElement>('.tdb-modal button[aria-label="Close"]')
-  assert.ok(closePrices, 'pricing close button is present')
-  await act(async () => {
-    closePrices.click()
-  })
-  assert.equal(container.querySelector('.tdb-modal'), null)
+  await switchTab('Rates')
+  assert.match(container.textContent ?? '', /List prices are pre-filled/)
+  assert.match(container.textContent ?? '', /deepseek-flash/)
+  assert.match(container.textContent ?? '', /Save/)
 
   } finally {
     await act(async () => {

@@ -96,9 +96,42 @@ for (const entry of BUILTIN_PRICES) {
   }
 }
 for (const entry of GENERATED_PRICES) {
-  for (const candidate of modelKeyCandidates(entry.id)) {
+  const candidates = modelKeyCandidates(entry.id)
+  // The hand-maintained official DeepSeek rates win for the whole family,
+  // including a vendor-prefixed exact id from the OpenRouter snapshot.
+  if (candidates.some(candidate => BUILTIN_BY_KEY.has(candidate))) continue
+  for (const candidate of candidates) {
     if (!BUILTIN_BY_KEY.has(candidate)) BUILTIN_BY_KEY.set(candidate, entry.price)
   }
+}
+
+
+/** One row for the Rates page: every built-in family and OpenRouter id. */
+export interface BuiltinPriceRow {
+  key: string
+  provider: string
+  model: string
+  price: ModelPrice
+}
+
+/** All built-in prices, including the hand-maintained DeepSeek families. */
+export function builtinPriceRows(): BuiltinPriceRow[] {
+  const rows: BuiltinPriceRow[] = BUILTIN_PRICES.map(entry => ({
+    key: entry.id,
+    provider: 'DeepSeek official',
+    model: entry.id,
+    price: entry.price,
+  }))
+  for (const entry of GENERATED_PRICES) {
+    const slash = entry.id.indexOf('/')
+    rows.push({
+      key: entry.id,
+      provider: slash === -1 ? 'OpenRouter' : entry.id.slice(0, slash).replace(/^~/, ''),
+      model: entry.id,
+      price: entry.price,
+    })
+  }
+  return rows.sort((left, right) => left.key.localeCompare(right.key))
 }
 
 /** Resolve a built-in list price by model id, ignoring provider/date variants. */
