@@ -12,7 +12,6 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
 }
 
 import { setLanguage } from '../src/client/language.js'
-import { summarize } from '../src/shared/range.js'
 import type {
   ModelUsage,
   SessionSummary,
@@ -207,7 +206,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.equal(container.querySelectorAll('.tdb-surface').length, 1)
   assert.equal(container.querySelectorAll('.tdb-pagetab').length, 6)
   assert.equal(container.querySelectorAll('.tdb-kpi').length, 4)
-  assert.equal(container.querySelectorAll('.tdb-section-title').length, 0)
+  assert.equal(container.querySelectorAll('.tdb-heatmap-title').length, 1)
   assert.equal(container.textContent?.includes('Lifetime'), false)
   assert.equal(container.textContent?.includes('Read-only'), false)
 
@@ -230,21 +229,8 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   assert.match(container.textContent ?? '', /Total tokens/)
   assert.equal(english.getAttribute('aria-pressed'), 'true')
 
-  const days7 = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-range-btn'))
-    .find(button => button.textContent?.startsWith('7 days'))
-  assert.ok(days7, 'range control is present')
-  await act(async () => {
-    days7.click()
-  })
-  assert.equal(days7.getAttribute('aria-pressed'), 'true')
-
-  const ioView = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-view-btn'))
-    .find(button => button.textContent?.startsWith('Input / Output'))
-  assert.ok(ioView, 'chart view control is present')
-  await act(async () => {
-    ioView.click()
-  })
-  assert.equal(ioView.getAttribute('aria-pressed'), 'true')
+  assert.ok(container.querySelector('.tdb-heatmap'), 'heatmap is present')
+  assert.equal(container.querySelectorAll('.tdb-heat-cell').length > 0, true)
 
   const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Sync now"]')
   assert.ok(refresh, 'refresh button is present')
@@ -256,7 +242,7 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
   await switchTab('Models')
   assert.match(container.textContent ?? '', /deepseek-v4\.1-flash/)
   assert.doesNotMatch(container.textContent ?? '', /Fix the parser/)
-  assert.equal(container.querySelectorAll('.tdb-section-title').length, 0)
+  assert.equal(container.querySelectorAll('.tdb-heatmap-title').length, 0)
 
   await switchTab('Sessions')
   assert.match(container.textContent ?? '', /Fix the parser/)

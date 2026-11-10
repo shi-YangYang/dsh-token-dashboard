@@ -145,6 +145,9 @@ export const CSS = `
   flex: 1 1 auto;
   min-height: 0;
 }
+.tdb-surface--pages.tdb-surface--compact { flex: 0 0 auto; }
+.tdb-surface--pages.tdb-surface--compact .tdb-page { flex: 0 0 auto; }
+.tdb-surface--pages.tdb-surface--compact .tdb-page > .tdb-section { flex: 0 0 auto; }
 .tdb-surface--pages .tdb-pagetabs { flex: 0 0 auto; }
 .tdb-surface--pages .tdb-page {
   display: flex;
@@ -172,7 +175,9 @@ export const CSS = `
 .tdb-table-panel > .tdb-table-wrap {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
 }
 .tdb-table-panel > .tdb-pager { flex: 0 0 auto; }
 .tdb-table-panel .tdb-table {
@@ -300,6 +305,35 @@ export const CSS = `
 .tdb-filters .tdb-select { max-width: 172px; }
 .tdb-filters .tdb-select-wrap { max-width: 172px; }
 
+
+.tdb-heatmap-section { min-width: 0; }
+.tdb-heatmap { position: relative; display: flex; flex-direction: column; gap: 18px; min-width: 0; --tdb-heat-blue: #0b8cff; }
+.tdb-heatmap-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; }
+.tdb-heatmap-title { margin: 0; font-size: 16px; font-weight: 600; color: var(--tdb-ink); letter-spacing: -0.01em; }
+.tdb-heatmap-modes { display: inline-flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 1px; }
+.tdb-heatmap-mode { appearance: none; border: 0; background: transparent; padding: 0; font: inherit; font-size: 13px; line-height: 1.4; color: var(--tdb-ink-2); cursor: pointer; transition: color 120ms ease; }
+.tdb-heatmap-mode:hover { color: var(--tdb-ink); }
+.tdb-heatmap-mode[aria-pressed="true"] { color: var(--tdb-ink); font-weight: 600; }
+.tdb-heatmap-mode:focus-visible { outline: 2px solid var(--tdb-brand); outline-offset: 4px; border-radius: 3px; }
+.tdb-heatmap-scroll { min-width: 0; }
+.tdb-heatmap-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, minmax(0, 1fr)); gap: 4px; min-width: 0; }
+.tdb-heat-control, .tdb-heat-cell { display: block; min-width: 0; aspect-ratio: 1; border-radius: 4px; }
+.tdb-heat-cell { cursor: default; outline: none; transition: transform 100ms ease, box-shadow 100ms ease; }
+.tdb-heat-cell[tabindex="0"] { cursor: pointer; }
+.tdb-heat-cell:hover, .tdb-heat-cell:focus-visible { transform: scale(1.12); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tdb-heat-blue) 35%, transparent); }
+.tdb-heat-cell--0 { background: #f1f3f5; }
+.tdb-heat-cell--1 { background: color-mix(in srgb, var(--tdb-heat-blue) 22%, #ffffff); }
+.tdb-heat-cell--2 { background: color-mix(in srgb, var(--tdb-heat-blue) 44%, #ffffff); }
+.tdb-heat-cell--3 { background: color-mix(in srgb, var(--tdb-heat-blue) 68%, #ffffff); }
+.tdb-heat-cell--4 { background: var(--tdb-heat-blue); }
+.tdb-heatmap-month-grid { display: grid; margin-top: 9px; min-width: 0; height: 15px; font-size: 11px; color: var(--tdb-ink-2); }
+.tdb-heatmap-month { grid-row: 1; white-space: nowrap; }
+.tdb-heatmap-tooltip { position: absolute; z-index: 8; pointer-events: none; transform: translate(-50%, -100%); }
+.tdb-heatmap-tooltip-surface { padding: 7px 9px; }
+.tdb-heatmap-tooltip-inner { display: flex; flex-direction: column; gap: 2px; font-size: 11px; }
+.tdb-heatmap-tooltip-inner b { font-weight: 600; }
+.tdb-heatmap-tooltip-inner span { color: var(--tdb-ink-2); white-space: nowrap; }
+
 .tdb-chart { position: relative; width: 100%; min-width: 0; }
 .tdb-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
 .tdb-axis-text { font-size: 10px; fill: var(--tdb-ink-2); }
@@ -355,7 +389,7 @@ export const CSS = `
   border-bottom: 1px solid var(--tdb-line);
   white-space: nowrap;
 }
-.tdb-table td { padding: 10px 12px; border-bottom: 1px solid var(--tdb-line); vertical-align: middle; overflow-wrap: anywhere; }
+.tdb-table td { padding: 8px 12px; border-bottom: 1px solid var(--tdb-line); vertical-align: middle; overflow-wrap: anywhere; }
 .tdb-table tbody tr:last-child td { border-bottom: none; }
 .tdb-table tbody tr.tdb-row { cursor: pointer; }
 .tdb-table tbody tr.tdb-row:hover { background: var(--tdb-surface-2); }
@@ -591,8 +625,8 @@ export const CSS = `
 .tdb-menu-item:hover { background: var(--tdb-surface-2); }
 
 .tdb-pricing-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.tdb-pricing-wrap { flex: 0 1 auto; min-height: 0; overflow: hidden; }
-.tdb-pricing-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 14px; }
+.tdb-pricing-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.tdb-pricing-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; flex: 0 0 auto; padding-top: 12px; }
 .tdb-pricing-grid {
   display: grid;
   grid-template-columns: 1.6fr 0.7fr repeat(4, minmax(0, 0.6fr));

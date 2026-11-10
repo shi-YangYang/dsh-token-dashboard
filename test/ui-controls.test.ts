@@ -11,7 +11,6 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
   globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver
 }
 
-import { DatePicker } from '../src/client/components/ui/DatePicker.js'
 import { Select } from '../src/client/components/ui/Select.js'
 
 test('the beUI select opens a listbox and reports the chosen value', async () => {
@@ -82,52 +81,4 @@ test('the beUI select opens a listbox and reports the chosen value', async () =>
   }
 })
 
-test('the custom date picker opens a calendar and reports the chosen day', async () => {
-  const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/' })
-  const globals = globalThis as unknown as Record<string, unknown>
-  globals.window = dom.window
-  globals.document = dom.window.document
-  globals.HTMLElement = dom.window.HTMLElement
-  globals.Node = dom.window.Node
-  globals.IS_REACT_ACT_ENVIRONMENT = true
 
-  const { createRoot } = await import('react-dom/client')
-  const { act } = await import('react-dom/test-utils')
-  const container = dom.window.document.createElement('div')
-  dom.window.document.body.append(container)
-  const root = createRoot(container)
-  let chosen = '2026-01-05'
-
-  try {
-    await act(async () => {
-      root.render(h(DatePicker, {
-        value: '2026-01-05',
-        ariaLabel: 'Pick a date',
-        intl: 'en-US',
-        previousLabel: 'Previous month',
-        nextLabel: 'Next month',
-        onChange: (value: string) => { chosen = value },
-      }))
-    })
-    const trigger = container.querySelector<HTMLButtonElement>('.tdb-date-trigger')
-    assert.ok(trigger)
-    await act(async () => {
-      trigger.click()
-    })
-    assert.ok(container.querySelector('.tdb-date-popover'))
-    const day = Array.from(container.querySelectorAll<HTMLButtonElement>('.tdb-cal-day'))
-      .find(button => button.textContent === '6')
-    assert.ok(day)
-    await act(async () => {
-      day.click()
-    })
-    assert.equal(chosen, '2026-01-06')
-    assert.equal(container.querySelector('.tdb-date-popover'), null)
-  } finally {
-    await act(async () => {
-      root.unmount()
-    })
-    container.remove()
-    dom.window.close()
-  }
-})

@@ -41,7 +41,7 @@ The plugin never writes a session log, changes a model request, or uploads sessi
 ## Features
 
 - **Global usage in one view** — totals, uncached input, output, cache read/write, request count, cache hit rate, and session counts across all sessions in the active profile.
-- **Range-aware trends** — today, last 7 / 30 / 90 days, all time, or a custom date range; KPIs and the Usage chart share the same range.
+- **Token activity heatmap** — a one-year calendar heatmap with daily, weekly, and cumulative views; hover a cell for the date, token count, and request count.
 - **Models and sessions** — searchable, filterable, sortable tables with pagination and a session detail drawer.
 - **Request log** — one row per billed request, with time, app, provider, model, new input, output, cache hit, cost, speed, and first-token latency.
 - **Cost estimates** — a built-in 453-model priced OpenRouter snapshot plus hand-maintained DeepSeek peak rates; override any price on the dedicated **Rates** page, or refresh from OpenRouter on demand.
@@ -82,7 +82,7 @@ Updating Host code requires a DSH restart; Client-only changes need a page refre
 
 | Page | What it shows |
 | --- | --- |
-| **Overview** | Global KPIs and a Usage chart across the selected range |
+| **Overview** | Global KPIs and a one-year Token activity heatmap |
 | **Models** | Token distribution and request counts by provider/model |
 | **Sessions** | Search, filters, sorting, pagination, and per-session detail |
 | **Request log** | Individual billed requests, 12 per page, newest first |
@@ -131,7 +131,7 @@ All routes use the Host Connection gate when available and return `Cache-Control
 pnpm install
 pnpm build        # Host (tsc) + Client (Tailwind + esbuild)
 pnpm typecheck    # Host, Client, and Test type checks
-pnpm test         # 87 tests: unit, routes, SSR, jsdom, bundle
+pnpm test         # 84 tests: unit, routes, SSR, jsdom, bundle
 pnpm verify:real  # fold real local logs against an independent reference
 pnpm build:prices # refresh the generated OpenRouter price snapshot (network)
 ```

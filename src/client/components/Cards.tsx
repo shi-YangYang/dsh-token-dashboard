@@ -1,4 +1,4 @@
-/** Range-scoped KPI row: four values, one quiet sub-line each. */
+/** Lifetime KPI row: four values, one quiet sub-line each. */
 
 import { createElement as h } from 'react'
 import type { ReactElement } from 'react'
@@ -7,21 +7,18 @@ import type { T } from '../lib.js'
 import { formatCompact, formatNumber, formatPercent } from '../../shared/format.js'
 import { cacheTokens, totalTokens } from '../../shared/model.js'
 import { shareOf } from '../../shared/range.js'
-import type { RangeResult } from '../../shared/range.js'
 import type { StatsPayload } from '../../shared/types.js'
 
 export interface KpiCardsProps {
   data: StatsPayload
-  /** When supplied, the four values and sub-lines follow this range. */
-  result?: RangeResult | undefined
   t: T
   intl: string | undefined
 }
 
-export function KpiCards({ data, result, t, intl }: KpiCardsProps): ReactElement {
-  const totals = result?.totals ?? data.totals
-  const requests = result?.requests ?? data.requests
-  const hitRate = result?.cacheHitRate ?? data.cacheHitRate
+export function KpiCards({ data, t, intl }: KpiCardsProps): ReactElement {
+  const totals = data.totals
+  const requests = data.requests
+  const hitRate = data.cacheHitRate
   const total = totalTokens(totals)
   const input = totals.uncachedInputTokens
   const output = totals.outputTokens

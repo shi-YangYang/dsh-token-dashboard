@@ -41,7 +41,7 @@ Host 端通过官方 `sessionPersistence` 服务读取会话日志，并使用�
 ## 功能
 
 - **全局用量视图**：当前 profile 下所有会话的总量、未缓存输入、输出、缓存读/写、请求数、缓存命中率和会话数。
-- **时间范围联动**：今天、最近 7 / 30 / 90 天、全部时间或自定义日期范围；KPI 与 Usage 图表使用同一范围。
+- **Token 活动热力图**：最近一年的日历热力图，支持每天 / 每周 / 累计总量三种视图；悬停可查看日期、Token 和请求数。
 - **模型与会话**：可搜索、筛选、排序的分页表格，以及会话详情抽屉。
 - **请求日志**：按每次计费请求展示时间、应用、供应商、模型、新增输入、输出、缓存命中、成本、速度和首字耗时。
 - **费用估算**：内置 453 个可定价 OpenRouter 模型快照与 DeepSeek 高峰价；可在独立的 **单价** 页覆盖任意单价，也可按需从 OpenRouter 刷新。
@@ -82,7 +82,7 @@ plugin_manager(action: "install_bundle", target: "/absolute/path/to/dsh-token-da
 
 | 页面 | 内容 |
 | --- | --- |
-| **概览** | 所选范围内的全局 KPI 与 Usage 图表 |
+| **概览** | 全局 KPI 与最近一年的 Token 活动热力图 |
 | **模型** | 按供应商/模型统计的 Token 分布与请求数 |
 | **会话** | 搜索、筛选、排序、分页和会话详情 |
 | **请求日志** | 逐条计费请求，每页 12 条，最新在前 |
@@ -131,7 +131,7 @@ HTTP 接口只读且同源：
 pnpm install
 pnpm build        # Host（tsc）+ Client（Tailwind + esbuild）
 pnpm typecheck    # Host、Client、Test 三套类型检查
-pnpm test         # 87 个测试：单元、路由、SSR、jsdom、bundle
+pnpm test         # 84 个测试：单元、路由、SSR、jsdom、bundle
 pnpm verify:real  # 用独立实现校验真实本地日志折叠
 pnpm build:prices # 刷新 OpenRouter 内置价目快照（需要网络）
 ```

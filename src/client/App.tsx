@@ -11,8 +11,7 @@ import { PricingPage } from './components/PricingPage.js'
 import { SessionDetail } from './components/SessionDetail.js'
 import { SessionTable } from './components/Sessions.js'
 import { RequestLog } from './components/RequestLog.js'
-import { Trends } from './components/Trends.js'
-import type { ChartView } from './components/Trends.js'
+import { Heatmap } from './components/Heatmap.js'
 import { PageTabs } from './components/ui/PageTabs.js'
 import type { PageId } from './components/ui/PageTabs.js'
 import { Button, EmptyState, Notice, SkeletonDashboard } from './components/common.js'
@@ -25,8 +24,6 @@ import { en, zh } from './locales.js'
 import { totalTokens } from '../shared/model.js'
 import { defaultsForModels, mergePricing } from '../shared/pricing.js'
 import { builtinPriceRows } from '../shared/builtin-prices.js'
-import { selectRange } from '../shared/range.js'
-import type { RangeSelection } from '../shared/range.js'
 import { SCAN_INTERVAL_MS, readScanInterval, saveScanInterval, type ScanInterval } from './scan.js'
 import { CSS } from './styles.js'
 import { BEUI_CSS } from './beui-css.js'
@@ -80,8 +77,6 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [page, setPage] = useState<PageId>('overview')
   const [requestRefresh, setRequestRefresh] = useState(0)
-  const [range, setRange] = useState<RangeSelection>({ id: '30d', from: '', to: '' })
-  const [chartView, setChartView] = useState<ChartView>('io')
   const priceModelsRef = useRef(models)
   const onlineRef = useRef(online)
   const onlineAtRef = useRef(onlineAt)
@@ -122,12 +117,6 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
       clearInterval(timer)
     }
   }, [priceModelKey])
-  const rangeResult = useMemo(() => selectRange({
-    days: data?.days ?? [],
-    hours: data?.hours ?? [],
-    today: data?.today ?? '',
-  }, range), [data, range])
-
   const selected = data === null || selectedId === null
     ? null
     : data.sessionRows.find(row => row.id === selectedId) ?? null
@@ -210,7 +199,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
         problem === null
           ? null
           : h(Notice, { tone: 'warn', icon: h(AlertIcon, { size: 15 }) }, problem),
-        h('div', { className: 'tdb-surface tdb-surface--pages' },
+        h('div', { className: `tdb-surface tdb-surface--pages${page === 'overview' ? ' tdb-surface--compact' : ''}` },
           h(PageTabs, {
             items: pageTabs,
             value: page,
@@ -226,18 +215,9 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
           },
           page === 'overview'
             ? h(Fragment, {},
-              h(KpiCards, { data, result: rangeResult, t, intl }),
+              h(KpiCards, { data, t, intl }),
               h('div', { className: 'tdb-rule' }),
-              h(Trends, {
-                data,
-                result: rangeResult,
-                range,
-                view: chartView,
-                onRangeChange: setRange,
-                onViewChange: setChartView,
-                t,
-                intl,
-              }))
+              h(Heatmap, { data, t, intl }))
             : page === 'models'
               ? h(ModelTable, { models: data.models, total: totalTokens(data.totals), t, intl })
               : page === 'sessions'
