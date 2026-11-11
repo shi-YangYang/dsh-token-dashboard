@@ -1,6 +1,6 @@
 {
   "name": "@shi-yangyang/dsh-token-dashboard",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Global Token usage analytics for every DeepSeek Harness session: totals, trends, models, sessions, and optional cost estimates.",
   "keywords": [
     "deepseek",
