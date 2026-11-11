@@ -36,6 +36,7 @@ export function PageTabs({ items, value, onChange, ariaLabel }: PageTabsProps): 
         value: item.id,
         id: `tdb-tab-${item.id}`,
         className: 'tdb-pagetab',
+        indicatorClassName: 'tdb-pagetab-indicator',
         'aria-controls': 'tdb-page-panel',
         children: item.label,
       })),

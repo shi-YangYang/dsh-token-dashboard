@@ -81,6 +81,17 @@ export const CSS = `
   font-weight: 650;
   letter-spacing: -0.02em;
 }
+
+.tdb-sync-btn { width: 30px; height: 30px; min-width: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.tdb-sync-btn .tdb-sync-icon { display: inline-flex; width: 100%; height: 100%; align-items: center; justify-content: center; line-height: 0; }
+.tdb-sync-btn .tdb-sync-icon svg { display: block; margin: auto; }
+.tdb-tooltip-anchor { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.tdb-tooltip-popover { position: absolute; z-index: 40; left: 50%; transform: translateX(-50%); pointer-events: none; }
+.tdb-tooltip-popover--end { left: auto; right: 0; transform: none; }
+.tdb-tooltip-popover--top { bottom: calc(100% + 6px); }
+.tdb-tooltip-popover--bottom { top: calc(100% + 6px); }
+.tdb-tooltip-surface { padding: 6px 9px; font-size: 11px; font-weight: 500; }
+
 .tdb-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: wrap; margin-left: auto; }
 .tdb-lang-switch { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 8px; background: var(--tdb-surface-2); }
 .tdb-lang-choice { height: 24px; padding: 0 7px; border: 0; border-radius: 6px; background: none; color: var(--tdb-ink-2); font: inherit; font-size: 11px; line-height: 1; cursor: pointer; }
@@ -135,9 +146,10 @@ export const CSS = `
 .tdb-rule { height: 1px; background: var(--tdb-line); margin: 0 22px; }
 .tdb-pagetabs { display: flex; align-items: stretch; gap: 2px; padding: 4px 22px 0; border-bottom: 1px solid var(--tdb-line); overflow-x: auto; scrollbar-width: none; }
 .tdb-pagetabs::-webkit-scrollbar { display: none; }
-.tdb-pagetab { flex: 0 0 auto; margin-bottom: -1px; padding: 10px 10px 9px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--tdb-ink-2); font: inherit; font-size: 12px; font-weight: 500; line-height: 1.2; white-space: nowrap; cursor: pointer; }
+.tdb-pagetab { flex: 0 0 auto; margin-bottom: -1px; padding: 10px 10px 9px; border: 0; background: none; color: var(--tdb-ink-2); font: inherit; font-size: 12px; font-weight: 500; line-height: 1.2; white-space: nowrap; cursor: pointer; }
 .tdb-pagetab:hover { color: var(--tdb-ink); }
-.tdb-pagetab[aria-selected="true"] { color: var(--tdb-ink); border-bottom-color: var(--tdb-brand); font-weight: 600; }
+.tdb-pagetab[aria-selected="true"] { color: var(--tdb-ink); font-weight: 600; }
+.tdb-pagetab-indicator { height: 2px; background: var(--tdb-brand); }
 .tdb-page { min-width: 0; }
 .tdb-surface--pages {
   display: flex;
@@ -625,7 +637,7 @@ export const CSS = `
 .tdb-menu-item:hover { background: var(--tdb-surface-2); }
 
 .tdb-pricing-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.tdb-pricing-wrap { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.tdb-pricing-wrap { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-bottom: 2px; }
 .tdb-pricing-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; flex: 0 0 auto; padding-top: 12px; }
 .tdb-pricing-grid {
   display: grid;
@@ -636,6 +648,18 @@ export const CSS = `
 }
 .tdb-pricing-head { font-size: 11px; color: var(--tdb-ink-2); font-weight: 500; padding-bottom: 2px; overflow-wrap: anywhere; }
 .tdb-pricing-model { min-width: 0; }
+.tdb-pricing-model-line { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.tdb-pricing-model-line .tdb-model-name { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.tdb-provider-tag { flex: 0 0 auto; display: inline-flex; align-items: center; height: 17px; padding: 0 6px; border-radius: 4px; font-size: 10px; line-height: 1; font-weight: 500; white-space: nowrap; }
+.tdb-provider-tag--orange { color: #b45309; background: color-mix(in srgb, #f59e0b 16%, transparent); }
+.tdb-provider-tag--green { color: #047857; background: color-mix(in srgb, #10b981 15%, transparent); }
+.tdb-provider-tag--blue { color: #1d4ed8; background: color-mix(in srgb, #3b82f6 14%, transparent); }
+.tdb-provider-tag--violet { color: #6d28d9; background: color-mix(in srgb, #8b5cf6 15%, transparent); }
+.tdb-provider-tag--pink { color: #be185d; background: color-mix(in srgb, #ec4899 14%, transparent); }
+.tdb-provider-tag--indigo { color: #4338ca; background: color-mix(in srgb, #6366f1 14%, transparent); }
+.tdb-provider-tag--amber { color: #92400e; background: color-mix(in srgb, #f59e0b 17%, transparent); }
+.tdb-provider-tag--teal { color: #0f766e; background: color-mix(in srgb, #14b8a6 15%, transparent); }
+.tdb-provider-tag--slate { color: #475569; background: color-mix(in srgb, #64748b 15%, transparent); }
 .tdb-pricing-input, .tdb-pricing-currency { width: 100%; height: 30px; min-width: 0; }
 .tdb-pricing-currency .tdb-select-trigger { height: 30px; }
 .tdb-select-wrap { position: relative; min-width: 0; max-width: 100%; }

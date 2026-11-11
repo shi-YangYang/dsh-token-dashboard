@@ -6,6 +6,7 @@ import type { ReactElement } from 'react'
 import { Button } from './common.js'
 import { ExportMenu } from './ExportMenu.js'
 import { Select } from './ui/Select.js'
+import { Tooltip } from './ui/Tooltip.js'
 import { RefreshIcon } from '../icons.js'
 import type { T } from '../lib.js'
 import type { Language } from '../language.js'
@@ -59,13 +60,18 @@ export function DashboardHeader({
           ariaLabel: t('scan.label'),
           className: 'tdb-scan-top-select',
         })),
-      h(Button, {
-        variant: 'ghost',
-        onClick: onRefresh,
-        busy: refreshing,
-        'aria-label': t('actions.syncNow'),
-        title: t('actions.syncNow'),
-      }, h('span', { className: refreshing ? 'tdb-spin' : '' }, h(RefreshIcon, { size: 15 })),
-        h('span', { className: 'tdb-sync-now-label' }, t('actions.syncNow'))),
+      h(Tooltip, {
+        content: t('actions.syncNow'),
+        placement: 'bottom',
+        align: 'end',
+        children: h(Button, {
+          variant: 'ghost',
+          iconOnly: true,
+          className: 'tdb-sync-btn',
+          onClick: onRefresh,
+          busy: refreshing,
+          'aria-label': t('actions.syncNow'),
+        }, h('span', { className: `tdb-sync-icon${refreshing ? ' tdb-spin' : ''}` }, h(RefreshIcon, { size: 18 }))),
+      }),
       showExport && data !== null ? h(ExportMenu, { data, t }) : null))
 }

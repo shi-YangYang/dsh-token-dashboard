@@ -133,9 +133,11 @@ export function PricingPage({ models, pricing, defaults, t, onSave }: PricingPag
             const invalid = errors[model.key] === true
             return [
               h('div', { key: `${model.key}:name`, className: 'tdb-pricing-model' },
-                h('div', { className: `tdb-model-name${model.model === '' ? ' tdb-model-unknown' : ''}` },
-                  model.model === '' ? t('models.unknown') : model.model),
-                h('div', { className: 'tdb-model-provider' }, model.provider === '' ? '—' : model.provider)),
+                h('div', { className: 'tdb-pricing-model-line' },
+                  h('span', { className: `tdb-model-name${model.model === '' ? ' tdb-model-unknown' : ''}` },
+                    model.model === '' ? t('models.unknown') : modelLabel(model.model)),
+                  h('span', { className: `tdb-provider-tag tdb-provider-tag--${providerTone(model.provider)}` },
+                    providerLabel(model.provider)))),
               h(Select, {
                 key: `${model.key}:currency`,
                 value: row.currency,
@@ -170,6 +172,35 @@ export function PricingPage({ models, pricing, defaults, t, onSave }: PricingPag
       h('div', { className: 'tdb-pricing-actions' },
         h(Button, { variant: 'ghost', onClick: clear }, t('cost.clear')),
         h(Button, { variant: 'primary', onClick: save }, t('cost.save')))))
+}
+
+function modelLabel(id: string): string {
+  return id.replace(/^~/, '').replace(/^[^/]+\//, '')
+}
+
+function providerLabel(provider: string): string {
+  return provider.replace(/\s+official$/i, '').trim().toLowerCase() || 'other'
+}
+
+const PROVIDER_TONES: Record<string, string> = {
+  anthropic: 'orange',
+  openai: 'green',
+  google: 'blue',
+  deepseek: 'violet',
+  moonshotai: 'pink',
+  meta: 'indigo',
+  mistralai: 'amber',
+  qwen: 'teal',
+  xai: 'slate',
+}
+
+function providerTone(provider: string): string {
+  const name = providerLabel(provider)
+  const known = PROVIDER_TONES[name]
+  if (known !== undefined) return known
+  let hash = 0
+  for (let index = 0; index < name.length; index += 1) hash = (hash * 31 + name.charCodeAt(index)) >>> 0
+  return ['blue', 'green', 'violet', 'orange', 'pink', 'teal', 'amber', 'slate'][hash % 8] ?? 'slate'
 }
 
 function currencyOptions(current: string): Array<{ value: string; label: string }> {

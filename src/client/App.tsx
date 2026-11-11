@@ -199,7 +199,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
         problem === null
           ? null
           : h(Notice, { tone: 'warn', icon: h(AlertIcon, { size: 15 }) }, problem),
-        h('div', { className: `tdb-surface tdb-surface--pages${page === 'overview' ? ' tdb-surface--compact' : ''}` },
+        h('div', { className: `tdb-surface tdb-surface--pages${page === 'overview' || page === 'pricing' ? ' tdb-surface--compact' : ''}` },
           h(PageTabs, {
             items: pageTabs,
             value: page,

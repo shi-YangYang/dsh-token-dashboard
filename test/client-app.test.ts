@@ -234,6 +234,12 @@ test('the dashboard mounts, fetches stats, renders data, and refreshes on demand
 
   const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Sync now"]')
   assert.ok(refresh, 'refresh button is present')
+  assert.equal(refresh.textContent, '', 'refresh action is icon-only')
+  await act(async () => {
+    refresh.focus()
+  })
+  assert.ok(container.querySelector('[role="tooltip"]'), 'sync tooltip is present')
+  assert.match(container.querySelector('[role="tooltip"]')?.textContent ?? '', /Sync now/)
   await act(async () => {
     refresh.click()
   })
