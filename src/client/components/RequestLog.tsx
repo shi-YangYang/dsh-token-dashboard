@@ -13,7 +13,7 @@ import type { T } from '../lib.js'
 import { formatClock, formatFirstToken, formatNumber, formatSpeed } from '../../shared/format.js'
 import { costOf, priceForModel, type PricingTable } from '../../shared/pricing.js'
 import { fetchRequestPage } from '../lib.js'
-import { TABLE_PAGE_SIZE } from '../table.js'
+const PAGE_SIZE = 17
 import type { RequestLogPage, RequestRecord } from '../../shared/types.js'
 
 export interface RequestLogProps {
@@ -33,12 +33,12 @@ export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps):
     let stopped = false
     setLoading(true)
     setFailed(false)
-    fetchRequestPage(page * TABLE_PAGE_SIZE, TABLE_PAGE_SIZE)
+    fetchRequestPage(page * PAGE_SIZE, PAGE_SIZE)
       .then(result => {
         if (stopped) return
         setData(result)
         setLoading(false)
-        const last = Math.max(0, Math.ceil(result.total / TABLE_PAGE_SIZE) - 1)
+        const last = Math.max(0, Math.ceil(result.total / PAGE_SIZE) - 1)
         if (page > last) setPage(last)
       })
       .catch(() => {
@@ -50,7 +50,7 @@ export function RequestLog({ pricing, t, intl, refreshToken }: RequestLogProps):
   }, [page, refreshToken])
 
   const total = data?.total ?? 0
-  const pages = Math.max(1, Math.ceil(total / TABLE_PAGE_SIZE))
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
   const current = Math.min(page, pages - 1)
 
   if (loading && data === null) {
@@ -95,31 +95,29 @@ function requestColumns(
     {
       key: 'time',
       header: t('requests.time'),
+      style: { width: '8%' },
       cellClassName: 'tdb-nowrap',
       render: row => formatClock(row.time, intl),
     },
     {
-      key: 'app',
-      header: t('requests.app'),
-      cellClassName: 'tdb-hide-sm',
-      render: row => row.app === '' ? '—' : row.app,
-    },
-    {
       key: 'provider',
       header: t('requests.provider'),
+      style: { width: '13%' },
       headerClassName: 'tdb-hide-md',
-      cellClassName: 'tdb-hide-md',
+      cellClassName: 'tdb-hide-md tdb-provider-cell',
       render: row => row.provider === '' ? '—' : row.provider,
     },
     {
       key: 'model',
       header: t('requests.model'),
-      render: row => h('span', { className: 'tdb-session-model', title: row.model },
+      style: { width: '29%' },
+      render: row => h('span', { className: 'tdb-session-model tdb-request-model', title: row.model },
         row.model === '' ? t('models.unknown') : row.model),
     },
     {
       key: 'input',
       header: t('requests.input'),
+      style: { width: '8%' },
       headerClassName: 'tdb-num',
       cellClassName: 'tdb-num',
       render: row => formatNumber(row.inputTokens, intl),
@@ -127,6 +125,7 @@ function requestColumns(
     {
       key: 'output',
       header: t('requests.output'),
+      style: { width: '7%' },
       headerClassName: 'tdb-num',
       cellClassName: 'tdb-num',
       render: row => formatNumber(row.outputTokens, intl),
@@ -134,6 +133,7 @@ function requestColumns(
     {
       key: 'cache',
       header: t('requests.cache'),
+      style: { width: '10%' },
       headerClassName: 'tdb-num tdb-hide-sm',
       cellClassName: 'tdb-num tdb-hide-sm',
       render: row => formatNumber(row.cacheReadTokens, intl),
@@ -141,6 +141,7 @@ function requestColumns(
     {
       key: 'cost',
       header: t('requests.cost'),
+      style: { width: '8%' },
       headerClassName: 'tdb-num',
       cellClassName: 'tdb-num',
       render: row => requestCost(row, pricing),
@@ -148,6 +149,7 @@ function requestColumns(
     {
       key: 'speed',
       header: h('span', { title: t('sessions.speedHint') }, t('sessions.speed')),
+      style: { width: '9%' },
       headerClassName: 'tdb-num tdb-hide-sm',
       cellClassName: 'tdb-num tdb-hide-sm',
       render: row => formatSpeed(row.speed),

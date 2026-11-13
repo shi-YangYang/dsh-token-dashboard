@@ -12,6 +12,7 @@ import { SessionDetail } from './components/SessionDetail.js'
 import { SessionTable } from './components/Sessions.js'
 import { RequestLog } from './components/RequestLog.js'
 import { Heatmap } from './components/Heatmap.js'
+import type { HeatMode } from './components/Heatmap.js'
 import { PageTabs } from './components/ui/PageTabs.js'
 import type { PageId } from './components/ui/PageTabs.js'
 import { Button, EmptyState, Notice, SkeletonDashboard } from './components/common.js'
@@ -76,6 +77,7 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [page, setPage] = useState<PageId>('overview')
+  const [activityMode, setActivityMode] = useState<HeatMode>('daily')
   const [requestRefresh, setRequestRefresh] = useState(0)
   const priceModelsRef = useRef(models)
   const onlineRef = useRef(online)
@@ -215,9 +217,9 @@ export function Dashboard({ onOpenSession }: DashboardProps): ReactElement {
           },
           page === 'overview'
             ? h(Fragment, {},
-              h(KpiCards, { data, t, intl }),
+              h(KpiCards, { data, mode: activityMode, t, intl }),
               h('div', { className: 'tdb-rule' }),
-              h(Heatmap, { data, t, intl }))
+              h(Heatmap, { data, t, intl, mode: activityMode, onModeChange: setActivityMode }))
             : page === 'models'
               ? h(ModelTable, { models: data.models, total: totalTokens(data.totals), t, intl })
               : page === 'sessions'

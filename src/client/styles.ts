@@ -188,7 +188,7 @@ export const CSS = `
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   padding-bottom: 2px;
 }
 .tdb-table-panel > .tdb-pager { flex: 0 0 auto; }
@@ -390,7 +390,8 @@ export const CSS = `
 .tdb-legend-dot { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
 .tdb-legend-dot--line { width: 14px; height: 2px; border-radius: 1px; }
 
-.tdb-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; }
+.tdb-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.tdb-table-wrap::-webkit-scrollbar { display: none; }
 .tdb-table { width: 100%; max-width: 100%; border-collapse: collapse; font-size: 12px; }
 .tdb-table th {
   padding: 0 12px 8px;
@@ -432,6 +433,8 @@ export const CSS = `
 
 .tdb-session-cell { min-width: 0; }
 .tdb-session-model { display: block; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tdb-table .tdb-request-model { width: 100%; max-width: none; }
+.tdb-table .tdb-provider-cell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
 .tdb-nowrap { white-space: nowrap; }
 .tdb-session-title { font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 340px; }
 .tdb-session-sub { font-size: 11px; color: var(--tdb-ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 0 1 auto; max-width: 340px; }
@@ -637,7 +640,7 @@ export const CSS = `
 .tdb-menu-item:hover { background: var(--tdb-surface-2); }
 
 .tdb-pricing-page { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.tdb-pricing-wrap { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.tdb-pricing-wrap { flex: 0 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; padding-bottom: 2px; }
 .tdb-pricing-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; flex: 0 0 auto; padding-top: 12px; }
 .tdb-pricing-grid {
   display: grid;

@@ -82,14 +82,14 @@ Updating Host code requires a DSH restart; Client-only changes need a page refre
 
 | Page | What it shows |
 | --- | --- |
-| **Overview** | Global KPIs and a one-year Token activity heatmap |
+| **Overview** | KPIs that follow the daily / weekly / cumulative mode, plus a one-year Token activity heatmap |
 | **Models** | Token distribution and request counts by provider/model |
 | **Sessions** | Search, filters, sorting, pagination, and per-session detail |
-| **Request log** | Individual billed requests, 12 per page, newest first |
+| **Request log** | Individual billed requests, 17 per page, newest first |
 | **Costs** | Estimated spend, per-model breakdown, and online price refresh |
 | **Rates** | Dedicated editor for every built-in model price; saved overrides immediately affect cost estimates |
 
-The header provides the language switch, scan interval, **Sync now**, and export. Scan interval controls local session polling: **5 / 10 / 30 / 60 seconds**. All list tables show up to 12 rows per page with compact natural row heights; pagination stays at the footer and no list introduces an inner scrollbar.
+The header provides the language switch, scan interval, **Sync now**, and export. Scan interval controls local session polling: **5 / 10 / 30 / 60 seconds**. All list tables show up to 11 rows per page (10 for Sessions, 17 for the request log) with compact natural row heights; pagination stays at the footer and no list introduces an inner scrollbar.
 
 Request-log cost is calculated with the current pricing table in the browser; unpriced models show `—`. Speed is output tokens divided by the measured request window. First-token latency runs from `step/start` to the first stream record; requests without stream timing show `—`.
 

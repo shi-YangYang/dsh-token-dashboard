@@ -30,7 +30,7 @@ export interface SessionsProps {
 }
 
 export function SessionTable({ rows, t, intl, now, onSelect }: SessionsProps): ReactElement {
-  const pageSize = TABLE_PAGE_SIZE
+  const pageSize = TABLE_PAGE_SIZE - 1
   const [query, setQuery] = useState('')
   const [project, setProject] = useState('')
   const [model, setModel] = useState('')

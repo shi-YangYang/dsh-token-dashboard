@@ -11,7 +11,7 @@ import { formatCompact, formatNumber } from '../../shared/format.js'
 import { totalTokens } from '../../shared/model.js'
 import type { StatsPayload, UsageBucket } from '../../shared/types.js'
 
-type HeatMode = 'daily' | 'weekly' | 'cumulative'
+export type HeatMode = 'daily' | 'weekly' | 'cumulative'
 
 interface DayCell {
   key: string
@@ -38,11 +38,12 @@ export interface HeatmapProps {
   data: StatsPayload
   t: T
   intl: string | undefined
+  mode: HeatMode
+  onModeChange: (mode: HeatMode) => void
 }
 
-export function Heatmap({ data, t, intl }: HeatmapProps): ReactElement {
+export function Heatmap({ data, t, intl, mode, onModeChange }: HeatmapProps): ReactElement {
   const rootRef = useRef<HTMLDivElement | null>(null)
-  const [mode, setMode] = useState<HeatMode>('daily')
   const [hover, setHover] = useState<Hover | null>(null)
   const model = useMemo(() => buildCalendar(data, intl), [data, intl])
   const view = useMemo(() => decorate(model, mode), [model, mode])
@@ -119,7 +120,7 @@ export function Heatmap({ data, t, intl }: HeatmapProps): ReactElement {
             type: 'button',
             className: 'tdb-heatmap-mode',
             'aria-pressed': mode === item.id,
-            onClick: () => setMode(item.id),
+            onClick: () => onModeChange(item.id),
           }, item.label)))),
       h('div', { className: 'tdb-heatmap-scroll' },
         h('div', {
